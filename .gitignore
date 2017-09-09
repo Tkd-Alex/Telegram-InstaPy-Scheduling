@@ -1,0 +1,6 @@
+assets/
+instapy/
+logs/
+
+telegram-bot-data/config.ini
+telegram-bot-data/resources
