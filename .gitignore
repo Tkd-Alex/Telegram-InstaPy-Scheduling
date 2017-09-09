@@ -4,3 +4,4 @@ logs/
 
 telegram-bot-data/config.ini
 telegram-bot-data/resources
+telegram-bot-data/*.txt

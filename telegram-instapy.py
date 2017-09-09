@@ -37,7 +37,7 @@ class customThread (threading.Thread):
         self.bot = bot
         self.job = job
     def run(self):
-        # Redirect stout to file
+        # Redirect stdout to file
         sys.stdout = open('telegram-bot-data/log-file.txt', 'wb')
 
         start = datetime.datetime.now().replace(microsecond=0)
@@ -74,6 +74,10 @@ def help(bot, update):
 
 def threadRun():
     try:
+        #################################################
+        # Put your instaPy code, the following it's mine ;)
+        #################################################
+
         # Reset random
         random.seed(9001)
 
@@ -82,7 +86,7 @@ def threadRun():
         insta_password = config.get('instapy', 'password');
         
         # Login
-        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=30)
+        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=27)
         session.login()
 
         # Comments
@@ -93,7 +97,6 @@ def threadRun():
             for line in f:
                 comments.append(line.strip("\n"))
         random.shuffle(comments)
-        
         session.set_comments(comments)
 
         # Follow
@@ -108,13 +111,12 @@ def threadRun():
         #session.set_upper_follower_count(limit = 2500)
 
         # Like
-        hashtags = []
+        hashtags = ["telegram"]
         # Read hashtags from file and shuffle
         with open('telegram-bot-data/resources/hashtags_' + str(random.randint(1,6)) +'.txt') as f:
             for line in f:
                 hashtags.append(line.strip("\n"))
         random.shuffle(hashtags)
-        
         session.like_by_tags(hashtags, amount=random.randint(6,12))
         
         session.end()
@@ -147,11 +149,12 @@ def set(bot, update, args, job_queue, chat_data):
         time = args[1].split(':')
 
         job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), context=chat_id, name=name_job)
-        chat_data[name_job] = job
+        data = {'name': name_job, 'schedule': args[1], 'job': job}
+        chat_data[name_job] = data
 
         update.message.reply_text('Job setted!')
     except (IndexError, ValueError):
-        update.message.reply_text('Usage: /set <name_job> <h:m:s>')
+        update.message.reply_text('Usage: /set <name_job> <hh:mm:ss>')
 
 def unset(bot, update, args, chat_data):
     # Remove a job from list
@@ -172,7 +175,13 @@ def unset(bot, update, args, chat_data):
 
 def print_job(bot, update, chat_data):
     # Print the list of jobs
-    update.message.reply_text(str(chat_data))
+    message = ""
+    if len(chat_data) > 0:    
+        for job in chat_data:
+            message = message + "- *Name:* {} *Schedule at*: {}\n".format(chat_data[job]["name"], chat_data[job]["schedule"])
+        update.message.reply_text(message, parse_mode='Markdown')
+    else:
+        update.message.reply_text("Job not setted")
 
 def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
