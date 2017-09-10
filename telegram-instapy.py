@@ -164,7 +164,7 @@ def unset(bot, update, args, chat_data):
             update.message.reply_text('Job not found!')
             return
 
-        job = chat_data[name_job]
+        job = chat_data[name_job][job]
         job.schedule_removal()
         del chat_data[name_job]
 
