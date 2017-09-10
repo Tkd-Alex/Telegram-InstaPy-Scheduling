@@ -18,7 +18,10 @@ username = instagram_username
 password = isntagram_password
  ```
 > You can leave empty instapy section and get credentials as you prefer.
-4. Insert your InstaPy script code inside *threadRun* function.
+4. Rename *telegram-bot-data/allowed-id.txt.dist* => *telegram-bot-data/allowed-id.txt*.
+5. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
+6. Write your chat id inside *allowed-id.txt*.
+7. Insert your InstaPy script code inside *threadRun* function.
 ```python
 def threadRun():
     try:
@@ -43,7 +46,7 @@ def threadRun():
         import traceback
         print(traceback.format_exc())
 ```
-5. Launch *telegram-instapy.py*.
+8. Launch *telegram-instapy.py*.
 
 ### Avaiable commands
 - **/set**: create a new schedule. 
