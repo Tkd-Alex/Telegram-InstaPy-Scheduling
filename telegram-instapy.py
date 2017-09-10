@@ -17,6 +17,12 @@ config.read('telegram-bot-data/config.ini')
 
 telegram_token = config.get('telegram', 'token');
 
+# Get allowed id
+allowed_id = []
+with open('telegram-bot-data/allowed-id.txt') as f:
+    for line in f:
+        allowed_id.append(line.strip("\n"))
+
 # Redirect to null
 old_stdout = sys.stdout
 sys.stdout = open(os.devnull, 'w')
@@ -31,7 +37,7 @@ logger = logging.getLogger(__name__)
 # Declare thread
 class customThread (threading.Thread):
     def __init__(self, name):
-    	threading.Thread.__init__(self)
+        threading.Thread.__init__(self)
         self.name = name
     def setTelegram(self, bot, job):
         self.bot = bot
@@ -143,18 +149,23 @@ def statusThread(bot, update):
 
 def set(bot, update, args, job_queue, chat_data):
     # Set a new job
-    try:
-        chat_id = update.message.chat_id
-        name_job = args[0]
-        time = args[1].split(':')
+    chat_id = update.message.chat_id
+    if str(chat_id) in allowed_id:
+        try:
+            chat_id = update.message.chat_id
+            name_job = args[0]
+            time = args[1].split(':')
 
-        job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), context=chat_id, name=name_job)
-        data = {'name': name_job, 'schedule': args[1], 'job': job}
-        chat_data[name_job] = data
+            job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), context=chat_id, name=name_job)
+            data = {'name': name_job, 'schedule': args[1], 'job': job}
+            chat_data[name_job] = data
 
-        update.message.reply_text('Job setted!')
-    except (IndexError, ValueError):
-        update.message.reply_text('Usage: /set <name_job> <hh:mm:ss>')
+            update.message.reply_text('Job setted!')
+        except (IndexError, ValueError):
+            update.message.reply_text('Usage: /set <name_job> <hh:mm:ss>')
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def unset(bot, update, args, chat_data):
     # Remove a job from list
