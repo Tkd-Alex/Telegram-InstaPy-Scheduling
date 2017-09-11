@@ -67,7 +67,7 @@ class customThread (threading.Thread):
             f.seek (max (fsize-1024, 0), 0) # Set pos @ last n chars
             lines = f.readlines()           # Read to end
 
-        lines = lines[-9:]                  # Get last 9 lines
+        lines = lines[-10:]                  # Get last 10 lines
         message = ''.join(str(x) for x in lines)
         self.bot.send_message(self.job.context, text=message)
 
