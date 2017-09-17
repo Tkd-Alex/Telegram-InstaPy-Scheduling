@@ -92,11 +92,11 @@ def threadRun():
         insta_password = config.get('instapy', 'password');
         
         # Login
-        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=27)
+        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=25)
         session.login()
 
         # Comments
-        session.set_do_comment(enabled=True, percentage=random.randint(45,60))
+        session.set_do_comment(enabled=True, percentage=random.randint(30,55))
         comments = []
         # Read comments from file and shuffle
         with open('telegram-bot-data/resources/comments.txt') as f:
@@ -106,11 +106,11 @@ def threadRun():
         session.set_comments(comments)
 
         # Follow
-        session.set_do_follow(enabled=True, percentage=random.randint(45,60), times=3)
-        session.set_user_interact(amount=10, random=True, percentage=random.randint(55,70), media='Photo')
+        session.set_do_follow(enabled=True, percentage=random.randint(30,45), times=3)
+        session.set_user_interact(amount=10, random=True, percentage=random.randint(30,70), media='Photo')
 
         # Unfollow
-        session.unfollow_users(amount=random.randint(10,20), onlyInstapyFollowed=True)
+        session.unfollow_users(amount=random.randint(15,30), onlyInstapyFollowed=True)
 
         # Limits
         #session.set_lower_follower_count(limit = 800)
@@ -119,11 +119,11 @@ def threadRun():
         # Like
         hashtags = ["telegram"]
         # Read hashtags from file and shuffle
-        with open('telegram-bot-data/resources/hashtags_' + str(random.randint(1,6)) +'.txt') as f:
+        with open('telegram-bot-data/resources/hashtags_' + str(random.randint(1,3)) +'.txt') as f:
             for line in f:
                 hashtags.append(line.strip("\n"))
         random.shuffle(hashtags)
-        session.like_by_tags(hashtags, amount=random.randint(6,12))
+        session.like_by_tags(hashtags, amount=random.randint(7,10))
         
         session.end()
     except:
