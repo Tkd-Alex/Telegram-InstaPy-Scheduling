@@ -106,11 +106,11 @@ def threadRun():
         session.set_comments(comments)
 
         # Follow
-        session.set_do_follow(enabled=True, percentage=random.randint(30,45), times=3)
-        session.set_user_interact(amount=10, random=True, percentage=random.randint(30,70), media='Photo')
+        session.set_do_follow(enabled=True, percentage=random.randint(10,25), times=3)
+        session.set_user_interact(amount=10, random=True, percentage=random.randint(20,80), media='Photo')
 
         # Unfollow
-        session.unfollow_users(amount=random.randint(15,30), onlyInstapyFollowed=True)
+        session.unfollow_users(amount=random.randint(10,40), onlyInstapyFollowed=True)
 
         # Limits
         #session.set_lower_follower_count(limit = 800)
@@ -123,7 +123,7 @@ def threadRun():
             for line in f:
                 hashtags.append(line.strip("\n"))
         random.shuffle(hashtags)
-        session.like_by_tags(hashtags, amount=random.randint(7,10))
+        session.like_by_tags(hashtags, amount=random.randint(8,15))
         
         session.end()
     except:
@@ -175,7 +175,7 @@ def unset(bot, update, args, chat_data):
             update.message.reply_text('Job not found!')
             return
 
-        job = chat_data[name_job][job]
+        job = chat_data[name_job]["job"]
         job.schedule_removal()
         del chat_data[name_job]
 
