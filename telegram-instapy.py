@@ -4,7 +4,8 @@
 # Import module
 import logging, threading, time, json, datetime, random, sys, os
 
-from telegram.ext import Updater, CommandHandler, Job
+from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from instapy import InstaPy
 from ConfigParser import SafeConfigParser
 
@@ -152,6 +153,17 @@ def set(bot, update, args, job_queue, chat_data):
     chat_id = update.message.chat_id
     if str(chat_id) in allowed_id:
         try:
+            '''
+            keyboard = [[InlineKeyboardButton("Sunday", callback_data='0'),
+                         InlineKeyboardButton("Monday", callback_data='1'),
+                         InlineKeyboardButton("Tuesday", callback_data='2'),
+                         InlineKeyboardButton("Wednesday", callback_data='3')],
+                         [InlineKeyboardButton("Thursday", callback_data='4'),
+                         InlineKeyboardButton("Friday", callback_data='5'),
+                         InlineKeyboardButton("Saturday", callback_data='6')],
+                        [InlineKeyboardButton("Everyday", callback_data='-1')]]
+            '''
+            update.message.reply_text('Choose a day: ', reply_markup = InlineKeyboardMarkup(keyboard))            
             chat_id = update.message.chat_id
             name_job = args[0]
             time = args[1].split(':')
@@ -166,6 +178,22 @@ def set(bot, update, args, job_queue, chat_data):
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
+
+def dayChoose(bot, update):
+    query = update.callback_query
+    keyboard = [[InlineKeyboardButton("Sunday", callback_data='0'),
+                 InlineKeyboardButton("Monday", callback_data='1'),
+                 InlineKeyboardButton("Tuesday", callback_data='2'),
+                 InlineKeyboardButton("Wednesday", callback_data='3')],
+                 [InlineKeyboardButton("Thursday", callback_data='4'),
+                 InlineKeyboardButton("Friday", callback_data='5'),
+                 InlineKeyboardButton("Saturday", callback_data='6')],
+                 [InlineKeyboardButton("Confirm", callback_data='-2')]]
+
+    bot.edit_message_text(text="Select another day or confirm:\n {}".format(query.data),
+                          chat_id=query.message.chat_id,
+                          message_id=query.message.message_id,
+                          reply_markup = InlineKeyboardMarkup(keyboard))
 
 def unset(bot, update, args, chat_data):
     # Remove a job from list
@@ -184,7 +212,7 @@ def unset(bot, update, args, chat_data):
         update.message.reply_text('Usage: /unset <name_job>')
 
 
-def print_job(bot, update, chat_data):
+def printJobs(bot, update, chat_data):
     # Print the list of jobs
     message = ""
     if len(chat_data) > 0:    
@@ -213,7 +241,9 @@ def main():
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
-    dp.add_handler(CommandHandler("print", print_job, pass_chat_data=True))
+    dp.add_handler(CommandHandler("print", printJobs, pass_chat_data=True))
+
+    dp.add_handler(CallbackQueryHandler(dayChoose))
 
     # log all errors
     dp.add_error_handler(error)
