@@ -7,9 +7,10 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
 - Telegram bot token.
 
 ### How to setup
-1. Create a bot with [@BotFather](https://telegram.me/BotFather).
-2. Rename *telegram-bot-data/config.ini.dist* => *telegram-bot-data/config.ini*.
-3. Populate *config.ini* with your data. 
+1. Clone this repo in your InstaPy folder.
+2. Create a bot with [@BotFather](https://telegram.me/BotFather).
+3. Rename *telegram-bot-data/config.ini.dist* => *telegram-bot-data/config.ini*.
+4. Populate *config.ini* with your data. 
 ```
 [telegram]
 token = token_from_botfather
@@ -18,10 +19,10 @@ username = instagram_username
 password = isntagram_password
  ```
 > You can leave empty instapy section and get credentials as you prefer.
-4. Rename *telegram-bot-data/allowed-id.txt.dist* => *telegram-bot-data/allowed-id.txt*.
-5. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
-6. Write your chat id inside *allowed-id.txt*.
-7. Insert your InstaPy script code inside *threadRun* function.
+5. Rename *telegram-bot-data/allowed-id.txt.dist* => *telegram-bot-data/allowed-id.txt*.
+6. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
+7. Write your chat id inside *allowed-id.txt*.
+8. Insert your InstaPy script code inside *threadRun* function.
 ```python
 def threadRun():
     try:
@@ -46,10 +47,13 @@ def threadRun():
         import traceback
         print(traceback.format_exc())
 ```
-8. Launch *telegram-instapy.py*.
+9. Launch *telegram-instapy.py*.
 
 ### Avaiable commands
-- **/set** <name> <time>: create a new schedule. Select day/days from bot.
-- **/unset**: delete schedule.
-- **/print**: print all setted job.
-- **/status**: print the status of InstaPy.
+| Command | Parameters              | Description                                      |
+|---------|-------------------------|--------------------------------------------------|
+| /set    | \<name\> \<hh:mm:ss\>   | Create a new schedule. Select the day from bot.  |
+| /unset  | \<name\>                | Delete a schedule.                               |
+| /print  |                         | Print all setted jobs                            |
+| /status |                         | Print the status of InstaPy.                     |
+
