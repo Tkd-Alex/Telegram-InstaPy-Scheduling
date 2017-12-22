@@ -1,6 +1,7 @@
 assets/
 instapy/
 logs/
+db/
 
 telegram-bot-data/config.ini
 telegram-bot-data/resources

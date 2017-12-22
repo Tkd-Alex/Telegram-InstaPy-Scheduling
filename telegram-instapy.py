@@ -7,7 +7,8 @@ import logging, threading, time, json, datetime, random, sys, os
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from instapy import InstaPy
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
+from pprint import pprint
 
 # Create folder
 if not os.path.exists("telegram-bot-data"):
@@ -24,16 +25,13 @@ with open('telegram-bot-data/allowed-id.txt') as f:
     for line in f:
         allowed_id.append(line.strip("\n"))
 
-# Redirect to null
-old_stdout = sys.stdout
-sys.stdout = open(os.devnull, 'w')
-
 # Create empty thread variable
+global thread_instaPy 
 thread_instaPy = None
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+#logger = logging.getLogger(__name__)
 
 # Declare thread
 class customThread (threading.Thread):
@@ -44,36 +42,25 @@ class customThread (threading.Thread):
         self.bot = bot
         self.job = job
     def run(self):
-        # Redirect stdout to file
-        sys.stdout = open('telegram-bot-data/log-file.txt', 'wb')
-
         start = datetime.datetime.now().replace(microsecond=0)
-        print("InstaPy Bot start at {}".format(time.strftime("%X")))
         self.bot.send_message(self.job.context, text='InstaPy Bot start at {}'.format(time.strftime("%X")))
         
         threadRun()
 
         endTime = time.strftime("%X")
         end = datetime.datetime.now().replace(microsecond=0)
-        print("InstaPy Bot end at {}\nExecution time {}".format(endTime, end-start))
-        #self.bot.send_message(self.job.context, text='InstaPy Bot end at {}! Execution time {}'.format(time.strftime("%X"), end-start))
+        self.bot.send_message(self.job.context, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-start))
         
-        sys.stdout.flush()
-        time.sleep(1)
-
         # Read the last 9 line to get ended status of InstaPy.
-        with open('telegram-bot-data/log-file.txt', "r") as f:
+        with open('logs/general.log', "r") as f:
             f.seek (0, 2)                   # Seek @ EOF
             fsize = f.tell()                # Get Size
             f.seek (max (fsize-1024, 0), 0) # Set pos @ last n chars
             lines = f.readlines()           # Read to end
 
-        lines = lines[-10:]                  # Get last 10 lines
+        lines = lines[-9:]                  # Get last 10 lines
         message = ''.join(str(x) for x in lines)
         self.bot.send_message(self.job.context, text=message)
-
-        # Come back to null
-        sys.stdout = open(os.devnull, 'w')	
 
 
 def help(bot, update):
@@ -93,7 +80,7 @@ def threadRun():
         insta_password = config.get('instapy', 'password');
         
         # Login
-        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=25)
+        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=random.randint(24,31))
         session.login()
 
         # Comments
@@ -105,17 +92,15 @@ def threadRun():
                 comments.append(line.strip("\n"))
         random.shuffle(comments)
         session.set_comments(comments)
-
         # Follow
         session.set_do_follow(enabled=True, percentage=random.randint(10,25), times=3)
-        session.set_user_interact(amount=10, random=True, percentage=random.randint(20,80), media='Photo')
+        session.set_user_interact(amount=10, randomize=True, percentage=random.randint(20,80), media='Photo')
 
         # Unfollow
-        session.unfollow_users(amount=random.randint(10,40), onlyInstapyFollowed=True)
-
+        session.unfollow_users(amount=random.randint(10,40), onlyInstapyFollowed=True, onlyInstapyMethod='FIFO', sleep_delay=random.randint(50,60))
         # Limits
-        #session.set_lower_follower_count(limit = 800)
-        #session.set_upper_follower_count(limit = 2500)
+        session.set_lower_follower_count(limit = 800)
+        session.set_upper_follower_count(limit = 2500)
 
         # Like
         hashtags = ["telegram"]
@@ -133,8 +118,8 @@ def threadRun():
 
 def execThread(bot, job):
     # If thread is not alive or not create start it.
+    global thread_instaPy
     if not thread_instaPy or not thread_instaPy.isAlive():
-        global thread_instaPy
         thread_instaPy = customThread("Thread-InstaPy")
         thread_instaPy.setTelegram(bot, job)
         thread_instaPy.start()
@@ -153,47 +138,69 @@ def set(bot, update, args, job_queue, chat_data):
     chat_id = update.message.chat_id
     if str(chat_id) in allowed_id:
         try:
-            '''
-            keyboard = [[InlineKeyboardButton("Sunday", callback_data='0'),
-                         InlineKeyboardButton("Monday", callback_data='1'),
-                         InlineKeyboardButton("Tuesday", callback_data='2'),
-                         InlineKeyboardButton("Wednesday", callback_data='3')],
-                         [InlineKeyboardButton("Thursday", callback_data='4'),
-                         InlineKeyboardButton("Friday", callback_data='5'),
-                         InlineKeyboardButton("Saturday", callback_data='6')],
+            data = {'name': args[0], 'schedule': args[1], 'days': []}
+            chat_data['tmpjob'] = data
+
+            keyboard = [[InlineKeyboardButton("Sunday", callback_data='6'),
+                         InlineKeyboardButton("Monday", callback_data='0'),
+                         InlineKeyboardButton("Tuesday", callback_data='1'),
+                         InlineKeyboardButton("Wednesday", callback_data='2')],
+                         [InlineKeyboardButton("Thursday", callback_data='3'),
+                         InlineKeyboardButton("Friday", callback_data='4'),
+                         InlineKeyboardButton("Saturday", callback_data='5')],
                         [InlineKeyboardButton("Everyday", callback_data='-1')]]
-            '''
-            update.message.reply_text('Choose a day: ', reply_markup = InlineKeyboardMarkup(keyboard))            
-            chat_id = update.message.chat_id
-            name_job = args[0]
-            time = args[1].split(':')
-
-            job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), context=chat_id, name=name_job)
-            data = {'name': name_job, 'schedule': args[1], 'job': job}
-            chat_data[name_job] = data
-
-            update.message.reply_text('Job setted!')
+        
+            update.message.reply_text('Choose a day: ', reply_markup = InlineKeyboardMarkup(keyboard))  
         except (IndexError, ValueError):
-            update.message.reply_text('Usage: /set <name_job> <hh:mm:ss>')
+            update.message.reply_text('Usage: /set <name_job> <hh:mm:ss>')     
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
 
-def dayChoose(bot, update):
+def dayChoose(bot, update, job_queue, chat_data):
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     query = update.callback_query
-    keyboard = [[InlineKeyboardButton("Sunday", callback_data='0'),
-                 InlineKeyboardButton("Monday", callback_data='1'),
-                 InlineKeyboardButton("Tuesday", callback_data='2'),
-                 InlineKeyboardButton("Wednesday", callback_data='3')],
-                 [InlineKeyboardButton("Thursday", callback_data='4'),
-                 InlineKeyboardButton("Friday", callback_data='5'),
-                 InlineKeyboardButton("Saturday", callback_data='6')],
-                 [InlineKeyboardButton("Confirm", callback_data='-2')]]
+    chat_id = query.message.chat_id
+    time = chat_data['tmpjob']['schedule'].split(':')
+    name_job = chat_data['tmpjob']['name']
 
-    bot.edit_message_text(text="Select another day or confirm:\n {}".format(query.data),
-                          chat_id=query.message.chat_id,
-                          message_id=query.message.message_id,
-                          reply_markup = InlineKeyboardMarkup(keyboard))
+    if query.data == '-1':
+        job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), context=chat_id, name=name_job)
+        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': "Everyday" }
+        chat_data[name_job] = data
+        del chat_data['tmpjob']
+
+        bot.edit_message_text(text = "Job setted!",
+                              chat_id = query.message.chat_id,
+                              message_id = query.message.message_id)
+    elif query.data == '-2':
+        selectedDays = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
+        job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), days=tuple(chat_data['tmpjob']['days']), context=chat_id, name=name_job)
+        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': selectedDays }
+        chat_data[name_job] = data
+        del chat_data['tmpjob']
+
+        bot.edit_message_text(text = "Job setted!",
+                              chat_id = query.message.chat_id,
+                              message_id = query.message.message_id)
+    else:
+        if int(query.data) not in chat_data['tmpjob']['days']:
+            chat_data['tmpjob']['days'].append(int(query.data))
+        
+        keyboard = [[InlineKeyboardButton("Sunday", callback_data='6'),
+                     InlineKeyboardButton("Monday", callback_data='0'),
+                     InlineKeyboardButton("Tuesday", callback_data='1'),
+                     InlineKeyboardButton("Wednesday", callback_data='2')],
+                     [InlineKeyboardButton("Thursday", callback_data='3'),
+                     InlineKeyboardButton("Friday", callback_data='4'),
+                     InlineKeyboardButton("Saturday", callback_data='5')],
+                     [InlineKeyboardButton("Confirm", callback_data='-2')]]
+
+        selectedDays = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
+        bot.edit_message_text(text = "Select another day or confirm:\n{}".format(selectedDays),
+                              chat_id = query.message.chat_id,
+                              message_id = query.message.message_id,
+                              reply_markup = InlineKeyboardMarkup(keyboard))
 
 def unset(bot, update, args, chat_data):
     # Remove a job from list
@@ -217,7 +224,7 @@ def printJobs(bot, update, chat_data):
     message = ""
     if len(chat_data) > 0:    
         for job in chat_data:
-            message = message + "- *Name:* {} *Schedule at*: {}\n".format(chat_data[job]["name"], chat_data[job]["schedule"])
+            message = message + "- *Name:* {} *Schedule at*: {} *Days:* {}\n".format(chat_data[job]["name"], chat_data[job]["schedule"], chat_data[job]["days"])
         update.message.reply_text(message, parse_mode='Markdown')
     else:
         update.message.reply_text("Job not setted")
@@ -243,13 +250,11 @@ def main():
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("print", printJobs, pass_chat_data=True))
 
-    dp.add_handler(CallbackQueryHandler(dayChoose))
+    dp.add_handler(CallbackQueryHandler(dayChoose, pass_job_queue=True, pass_chat_data=True))
 
     # log all errors
     dp.add_error_handler(error)
 
-    # Start the Bot
-    print("-- BOT STARTED -- at {}".format(datetime.datetime.now().replace(microsecond=0)))
     updater.start_polling()
 
     # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
