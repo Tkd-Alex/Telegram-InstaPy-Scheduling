@@ -49,8 +49,7 @@ def threadRun():
 8. Launch *telegram-instapy.py*.
 
 ### Avaiable commands
-- **/set**: create a new schedule. 
-> For the moment all setted schedule will be executed every day.
+- **/set** <name> <time>: create a new schedule. Select day/days from bot.
 - **/unset**: delete schedule.
 - **/print**: print all setted job.
 - **/status**: print the status of InstaPy.
