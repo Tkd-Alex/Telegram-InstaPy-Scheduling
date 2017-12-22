@@ -9,7 +9,7 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
 ### How to setup
 1. Create a bot with [@BotFather](https://telegram.me/BotFather).
 2. Rename *telegram-bot-data/config.ini.dist* => *telegram-bot-data/config.ini*.
-3. Populare *config.ini* with your data. 
+3. Populate *config.ini* with your data. 
 ```
 [telegram]
 token = token_from_botfather
