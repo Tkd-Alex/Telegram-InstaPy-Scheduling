@@ -56,4 +56,5 @@ def threadRun():
 | /unset  | \<name\>                | Delete a schedule.                               |
 | /print  |                         | Print all setted jobs                            |
 | /status |                         | Print the status of InstaPy.                     |
+| /now    |                         | Run immediately.                                 |
 
