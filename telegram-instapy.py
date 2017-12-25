@@ -29,27 +29,23 @@ with open('telegram-bot-data/allowed-id.txt') as f:
 global thread_instaPy 
 thread_instaPy = None
 
-# Enable logging
-#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-#logger = logging.getLogger(__name__)
-
 # Declare thread
 class customThread (threading.Thread):
     def __init__(self, name):
         threading.Thread.__init__(self)
         self.name = name
-    def setTelegram(self, bot, job):
+    def setTelegram(self, bot, chatid):
         self.bot = bot
-        self.job = job
+        self.chatid = chatid
     def run(self):
         start = datetime.datetime.now().replace(microsecond=0)
-        self.bot.send_message(self.job.context, text='InstaPy Bot start at {}'.format(time.strftime("%X")))
+        self.bot.send_message(self.chatid, text='InstaPy Bot start at {}'.format(time.strftime("%X")))
         
         threadRun()
 
         endTime = time.strftime("%X")
         end = datetime.datetime.now().replace(microsecond=0)
-        self.bot.send_message(self.job.context, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-start))
+        self.bot.send_message(self.chatid, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-start))
         
         # Read the last 9 line to get ended status of InstaPy.
         with open('logs/general.log', "r") as f:
@@ -59,8 +55,8 @@ class customThread (threading.Thread):
             lines = f.readlines()           # Read to end
 
         lines = lines[-9:]                  # Get last 10 lines
-        message = ''.join(str(x) for x in lines)
-        self.bot.send_message(self.job.context, text=message)
+        message = ''.join(str(x.replace("INFO - ", "")) for x in lines)
+        self.bot.send_message(self.chatid, text=message)
 
 
 def help(bot, update):
@@ -80,7 +76,7 @@ def threadRun():
         insta_password = config.get('instapy', 'password');
         
         # Login
-        session = InstaPy(username=insta_username, password=insta_password, nogui=True, page_delay=random.randint(24,31))
+        session = InstaPy(username=insta_username, password=insta_password, headless_browser=True, page_delay=random.randint(24,31), show_logs=True)
         session.login()
 
         # Comments
@@ -92,39 +88,49 @@ def threadRun():
                 comments.append(line.strip("\n"))
         random.shuffle(comments)
         session.set_comments(comments)
+
         # Follow
         session.set_do_follow(enabled=True, percentage=random.randint(10,25), times=3)
-        session.set_user_interact(amount=10, randomize=True, percentage=random.randint(20,80), media='Photo')
+        session.set_user_interact(amount=random.randint(7,13), randomize=True, percentage=random.randint(20,80), media='Photo')
 
         # Unfollow
         session.unfollow_users(amount=random.randint(10,40), onlyInstapyFollowed=True, onlyInstapyMethod='FIFO', sleep_delay=random.randint(50,60))
+        
         # Limits
         session.set_lower_follower_count(limit = 800)
-        session.set_upper_follower_count(limit = 2500)
+        session.set_upper_follower_count(limit = 5000)
 
         # Like
-        hashtags = ["telegram"]
+        hashtags = []
         # Read hashtags from file and shuffle
-        with open('telegram-bot-data/resources/hashtags_' + str(random.randint(1,3)) +'.txt') as f:
+        with open('telegram-bot-data/resources/hashtags_' + str(random.randint(1,6)) +'.txt') as f:
             for line in f:
-                hashtags.append(line.strip("\n"))
+                hashtags.append(line.strip("\n").replace('#',''))
         random.shuffle(hashtags)
-        session.like_by_tags(hashtags, amount=random.randint(8,15))
+        session.set_smart_hashtags(hashtags, limit=random.randint(3,8), sort='top', log_tags=False)
+        session.like_by_tags(amount=random.randint(6,15), use_smart_hashtags=True)
+        #session.like_by_tags(['love'], amount=3)
         
         session.end()
     except:
         import traceback
         print(traceback.format_exc())
 
-def execThread(bot, job):
+def _execThread(bot, id):
     # If thread is not alive or not create start it.
     global thread_instaPy
     if not thread_instaPy or not thread_instaPy.isAlive():
         thread_instaPy = customThread("Thread-InstaPy")
-        thread_instaPy.setTelegram(bot, job)
+        thread_instaPy.setTelegram(bot, id)
         thread_instaPy.start()
     else:
         bot.send_message(job.context, text='Bot already executing!')
+
+def execThread(bot, job):
+    _execThread(bot, job.context)
+
+def now(bot, update):
+    _execThread(bot, update.message.chat_id)
 
 def statusThread(bot, update):
     # Responde with the status of thread.
@@ -229,10 +235,6 @@ def printJobs(bot, update, chat_data):
     else:
         update.message.reply_text("Job not setted")
 
-def error(bot, update, error):
-    logger.warning('Update "%s" caused error "%s"' % (update, error))
-
-
 def main():
     updater = Updater(telegram_token)
 
@@ -246,14 +248,12 @@ def main():
     dp.add_handler(CommandHandler("status", statusThread))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
+    dp.add_handler(CommandHandler("now", now))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("print", printJobs, pass_chat_data=True))
 
     dp.add_handler(CallbackQueryHandler(dayChoose, pass_job_queue=True, pass_chat_data=True))
-
-    # log all errors
-    dp.add_error_handler(error)
 
     updater.start_polling()
 
