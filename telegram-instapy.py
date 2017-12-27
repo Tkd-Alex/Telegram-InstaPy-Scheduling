@@ -34,18 +34,18 @@ class customThread (threading.Thread):
     def __init__(self, name):
         threading.Thread.__init__(self)
         self.name = name
-    def setTelegram(self, bot, chatid):
+    def setTelegram(self, bot, chat_id):
         self.bot = bot
-        self.chatid = chatid
+        self.chat_id = chat_id
     def run(self):
         start = datetime.datetime.now().replace(microsecond=0)
-        self.bot.send_message(self.chatid, text='InstaPy Bot start at {}'.format(time.strftime("%X")))
+        self.bot.send_message(self.chat_id, text='InstaPy Bot start at {}'.format(time.strftime("%X")))
         
         threadRun()
 
         endTime = time.strftime("%X")
         end = datetime.datetime.now().replace(microsecond=0)
-        self.bot.send_message(self.chatid, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-start))
+        self.bot.send_message(self.chat_id, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-start))
         
         # Read the last 9 line to get ended status of InstaPy.
         with open('logs/general.log', "r") as f:
@@ -56,7 +56,7 @@ class customThread (threading.Thread):
 
         lines = lines[-9:]                  # Get last 10 lines
         message = ''.join(str(x.replace("INFO - ", "")) for x in lines)
-        self.bot.send_message(self.chatid, text=message)
+        self.bot.send_message(self.chat_id, text=message)
 
 
 def help(bot, update):
@@ -116,15 +116,15 @@ def threadRun():
         import traceback
         print(traceback.format_exc())
 
-def _execThread(bot, id):
+def _execThread(bot, chat_id):
     # If thread is not alive or not create start it.
     global thread_instaPy
     if not thread_instaPy or not thread_instaPy.isAlive():
         thread_instaPy = customThread("Thread-InstaPy")
-        thread_instaPy.setTelegram(bot, id)
+        thread_instaPy.setTelegram(bot, chat_id)
         thread_instaPy.start()
     else:
-        bot.send_message(job.context, text='Bot already executing!')
+        bot.send_message(chat_id, text='Bot already executing!')
 
 def execThread(bot, job):
     _execThread(bot, job.context)
