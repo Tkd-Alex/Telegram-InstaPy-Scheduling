@@ -190,22 +190,26 @@ def day_choose(bot, update, job_queue, chat_data):
                               reply_markup = InlineKeyboardMarkup(keyboard))
 
 def unset(bot, update, args, chat_data):
-    # Remove a job from list
-    try:
-        name_job = args[0]
-        if not name_job in chat_data:
-            update.message.reply_text('Job not found!')
-            return
+    if str(update.message.chat_id) in allowed_id:
+        try:
+            name_job = args[0]
+            if name_job in chat_data and name_job in threads:
+                job = chat_data[name_job]["job"]
+                job.schedule_removal()
 
-        job = chat_data[name_job]["job"]
-        job.schedule_removal()
-        del chat_data[name_job]
+                del threads[name_job]
+                del chat_data[name_job]
 
-        update.message.reply_text('Job successfully unset!')
-    except (IndexError, ValueError):
-        update.message.reply_text('Usage: /unset <name_job>')
+                update.message.reply_text('Job **{}** successfully unset!'.format(name_job), parse_mode='Markdown')
+            else:
+                update.message.reply_text("Sorry, job named **{}** was not found.".format(name_job), parse_mode='Markdown')
+        except (IndexError, ValueError):
+            update.message.reply_text('Usage: /unset <name_job>')   
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
 
-def list_josb(bot, update, chat_data):
+def list_jobs(bot, update, chat_data):
     # Print the list of jobs
     message = ""
     if len(chat_data) > 0:    
@@ -276,7 +280,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("now", now, pass_args=True))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
-    dp.add_handler(CommandHandler("jobs", list_josb, pass_chat_data=True))
+    dp.add_handler(CommandHandler("jobs", list_jobs, pass_chat_data=True))
 
     dp.add_handler(CommandHandler("add_user", add_user, pass_chat_data=True))
 
