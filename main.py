@@ -85,23 +85,27 @@ def create_thread(bot, context):
     )
 
 def status_thread(bot, update, args):
-    if len(args) != 0:
-        message = ""
-        for arg in args:
-            if arg in threads:
-                message += "\nName: **{}**, Account: **{}**, Script: **{}**, Status: **{}**".format(
-                arg, threads[arg].username, threads[arg].script, "ON" if threads[arg].isAlive() else "OFF"
-            )
-            else:
-                message += "\nName: **{}** not found in thread lists.".format(arg)
+    if str(update.message.chat_id) in allowed_id:
+        if len(args) != 0:
+            message = ""
+            for arg in args:
+                if arg in threads:
+                    message += "\nName: **{}**, Account: **{}**, Script: **{}**, Status: **{}**".format(
+                    arg, threads[arg].username, threads[arg].script, "ON" if threads[arg].isAlive() else "OFF"
+                )
+                else:
+                    message += "\nName: **{}** not found in thread lists.".format(arg)
+        else:
+            message = "There are {} threads configured.".format(len(threads))
+            index = 1
+            for thread in threads:
+                message += "\n{}) Name: **{}**, Account: **{}**, Script: **{}**, Status: **{}**".format(
+                    index, thread, threads[thread].username, threads[thread].script, "ON" if threads[thread].isAlive() else "OFF"
+                )
+                index += 1
     else:
-        message = "There are {} threads configured.".format(len(threads))
-        index = 1
-        for thread in threads:
-            message += "\n{}) Name: **{}**, Account: **{}**, Script: **{}**, Status: **{}**".format(
-                index, thread, threads[thread].username, threads[thread].script, "ON" if threads[thread].isAlive() else "OFF"
-            )
-            index += 1
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def set(bot, update, args, job_queue, chat_data):
     if str(update.message.chat_id) in allowed_id:
