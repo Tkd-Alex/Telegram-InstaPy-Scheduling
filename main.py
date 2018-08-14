@@ -38,6 +38,15 @@ def help(bot, update):
 def now(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
         try:
+            usernames = [ a['username'].lower() for a in users ]
+            if not args[1].lower() in usernames:
+                update.message.reply_text("Sorry, username **{}** is not saved.".format(args[0]), parse_mode='Markdown')
+                return
+
+            if not args[0] in scripts:
+                update.message.reply_text("Sorry, script named **{}** is not in your scripts file.".format(args[0]), parse_mode='Markdown')
+                return
+
             job_name = "{}_temp_{}".format(args[0], time.time())
             for user in users:
                 if user['username'].lower() == args[1].lower():
