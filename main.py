@@ -192,6 +192,25 @@ def add_user(bot, update, args):
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
 
+def delete_user(bot, update, args):
+    if str(update.message.chat_id) in allowed_id:
+        try:
+            usernames = [ a['username'].lower() for a in users ]
+            if not args[0].lower() in usernames:
+                update.message.reply_text("Sorry, username **{}** is not saved.".format(args[0]), parse_mode='Markdown')
+            else:
+                for i in range(0, len(users)):
+                    if users[i]['username'].lower() == args[0].lower():
+                        del users[i]
+                        break
+                pickle.dump(users, open('users.pickle', 'wb'))
+                update.message.reply_text("All done! **{}** correctly deleted.".format(args[0]), parse_mode='Markdown')
+        except (IndexError, ValueError):
+            update.message.reply_text('Usage: /delete_user <username>')     
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
+
 if __name__ == '__main__':
     updater = Updater(telegram_token)
 
