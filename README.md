@@ -1,60 +1,55 @@
-# Telegram-InstaPy-Scheduling
+# Telegram-InstaPy-Scheduling v2!
 Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*InstaPy*](https://github.com/timgrossmann/InstaPy).
 
+### What's news?
+- Run multiple script simultaneous.
+- Configure your scripts in easy way!
+- Create users list.
+
 ### What do you need
-- [*python-telegram-bot*](https://github.com/python-telegram-bot/python-telegram-bot)
+- This repo and all _requirements.txt_ installed.
 - InstaPy working on your pc/server.
 - Telegram bot token.
 
 ### How to setup
 1. Clone this repo in your InstaPy folder.
 2. Create a bot with [@BotFather](https://telegram.me/BotFather).
-3. Rename *telegram-bot-data/config.ini.dist* => *telegram-bot-data/config.ini*.
-4. Populate *config.ini* with your data. 
+3. Rename *settings.json.dist* => *settings.json*.
+4. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
+5. Populate *settings.json* with your data. 
 ```
-[telegram]
-token = token_from_botfather
-[instapy]
-username = instagram_username
-password = isntagram_password
+{
+    "telegram_token": "xxxx",
+    "allowed_id": [ "chat_id from GiveChatId_Bot", "342342" ]
+}
  ```
-> You can leave empty instapy section and get credentials as you prefer.
-5. Rename *telegram-bot-data/allowed-id.txt.dist* => *telegram-bot-data/allowed-id.txt*.
-6. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
-7. Write your chat id inside *allowed-id.txt*.
-8. Insert your InstaPy script code inside *threadRun* function.
+6. Write your personal scripts:
+#### How? 
+- Edit *scripts.py*
+- Create a function with name as you preferred and put inside an InstaPy script, for example:
 ```python
-def threadRun():
-    try:
-        #################################################
-        # Put your instaPy code, the following it's mine ;)
-        #################################################
-        
-        # Get instagram data from config.ini
-        insta_username = config.get('instapy', 'username');
-        insta_password = config.get('instapy', 'password');
-        
-        # Login
-        session = InstaPy(username=insta_username, password=insta_password, nogui=True)
-        session.login()
-
-        # Like
-        hashtags = ["#telegram"]
-        session.like_by_tags(hashtags, amount=5)
-        
-        session.end()
-    except:
-        import traceback
-        print(traceback.format_exc())
+def script_for_big_like(username, password, proxy):
+    session = instapy.InstaPy(username=username, password=password)
+    then put your instapy script.
 ```
-9. Launch *telegram-instapy.py*.
+- Save and exit.
+9. Launch *main.py*.
 
 ### Avaiable commands
-| Command | Parameters              | Description                                      |
-|---------|-------------------------|--------------------------------------------------|
-| /set    | \<name\> \<hh:mm:ss\>   | Create a new schedule. Select the day from bot.  |
-| /unset  | \<name\>                | Delete a schedule.                               |
-| /print  |                         | Print all setted jobs                            |
-| /status |                         | Print the status of InstaPy.                     |
-| /now    |                         | Run immediately.                                 |
+#### Users management
+| Command      | Parameters                                    | Description           |
+|--------------|-----------------------------------------------|-----------------------|
+| /add_user    | \<username\> \<password\> \<proxy:optional\>  | Save new user.        |
+| /delete_user | \<username\>                                  | Delete an user.       |
+| /users       |                                               | Print all users saved |
+
+#### Jobs management
+| Command  | Parameters                                             | Description                                      |
+|----------|--------------------------------------------------------|--------------------------------------------------|
+| /set     | \<username\> \<job_name\> \<script_name\> \<hh:mm:ss\> | Create a new schedule. Select the day from bot.  |
+| /unset   | \<job_name\>                                           | Delete a schedule.                               |
+| /jobs    |                                                        | Print all setted jobs                            |
+| /scripts |                                                        | Print all your scripts                           |
+| /status  | \<job_name:optional\>                                  | Print the status of all your thread or single.   |
+| /now     | \<username\> \<script_name\>                           | Run immediately.                                 |
 
