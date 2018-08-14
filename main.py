@@ -40,7 +40,7 @@ def now(bot, update, args):
         try:
             usernames = [ a['username'].lower() for a in users ]
             if not args[1].lower() in usernames:
-                update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
+                update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[1]), parse_mode='HTML')
                 return
 
             if not args[0] in scripts:
@@ -85,32 +85,29 @@ def create_thread(bot, context):
     )
 
 def status_thread(bot, update, args):
-    try:
-        if str(update.message.chat_id) in allowed_id:
-            if len(args) != 0:
-                message = ""
-                for arg in args:
-                    if arg in threads:
-                        message += "\n<b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
-                        arg, threads[arg].username, threads[arg].script_name, "ON" if threads[arg].isAlive() else "OFF"
-                    )
-                    else:
-                        message += "\n<b>Name:</b> {} not found in thread lists.".format(arg)
-            else:
-                message = "There are {} threads configured.".format(len(threads))
-                index = 1
-                for thread in threads:
-                    message += "\n{}) <b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
-                        index, thread, threads[thread].username, threads[thread].script_name, "ON" if threads[thread].isAlive() else "OFF"
-                    )
-                    index += 1
-
-            update.message.reply_text(message, parse_mode='HTML')
+    if str(update.message.chat_id) in allowed_id:
+        if len(args) != 0:
+            message = ""
+            for arg in args:
+                if arg in threads:
+                    message += "\n<b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
+                    arg, threads[arg].username, threads[arg].script_name, "ON" if threads[arg].isAlive() else "OFF"
+                )
+                else:
+                    message += "\n<b>Name:</b> {} not found in thread lists.".format(arg)
         else:
-            message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-            update.message.reply_text(message, parse_mode='Markdown')
-    except Exception as e:
-        print(e)
+            message = "There are {} threads configured.".format(len(threads))
+            index = 1
+            for thread in threads:
+                message += "\n{}) <b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
+                    index, thread, threads[thread].username, threads[thread].script_name, "ON" if threads[thread].isAlive() else "OFF"
+                )
+                index += 1
+
+        update.message.reply_text(message, parse_mode='HTML')
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def set(bot, update, args, job_queue, chat_data):
     if str(update.message.chat_id) in allowed_id:
@@ -291,6 +288,19 @@ def delete_user(bot, update, args):
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
 
+def print_users(bot, update):
+    if str(update.message.chat_id) in allowed_id:
+        usernames = [ a['username'].lower() for a in users ]
+        message = "You have <b>{}</b> accounts configured.".format(len(usernames))
+        index = 1
+        for username in usernames:
+            message += "\n{}) <b>{}</b>".format(index, username)
+            index += 1
+        update.message.reply_text(message, parse_mode='HTML')
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
+
 if __name__ == '__main__':
     updater = Updater(telegram_token)
 
@@ -309,6 +319,7 @@ if __name__ == '__main__':
 
     dp.add_handler(CommandHandler("add_user", add_user, pass_args=True))
     dp.add_handler(CommandHandler("delete_user", delete_user, pass_args=True))
+    dp.add_handler(CommandHandler("users", print_users))
 
     dp.add_handler(CommandHandler("scripts", list_scripts))
 
