@@ -4,7 +4,7 @@
 import random, time, traceback, instapy
 
 # Create your script here:
-def awesome(username, password):
+def awesome(username, password, proxy):
     try:
         session = instapy.InstaPy(username=username, password=password)
         session.login()
@@ -12,7 +12,7 @@ def awesome(username, password):
     except:
         print(traceback.format_exc())
 
-def biglikers(username, password):
+def biglikers(username, password, proxy):
     try:
         session = instapy.InstaPy(username=username, password=password)
         session.login()
