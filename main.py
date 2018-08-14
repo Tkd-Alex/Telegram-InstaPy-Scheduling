@@ -35,11 +35,28 @@ threads = {}
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
-# def now(bot, update, args):
-# 	if len(args) > 0:
-# 		_execThread(bot, update.message.chat_id, args[0])
-# 	else:
-# 		_execThread(bot, update.message.chat_id, "Thread-Instapy")
+def now(bot, update, args):
+    if str(update.message.chat_id) in allowed_id:
+        try:
+            job_name = "{}_temp_{}".format(args[0], time.time())
+            for user in users:
+                if user['username'].lower() == args[1].lower():
+                    break
+            temp_thread = Thread(
+                job_name,
+                args[0],
+                update.message.chat_id,
+                bot,
+                user['username'],
+                user['password'],
+                user['proxy']
+            )
+            temp_thread.start()       
+        except (IndexError, ValueError):
+            update.message.reply_text('Usage: /now <script_name> <username>')     
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def exec_thread(bot, job):
     if threads[job.name].isAlive():
