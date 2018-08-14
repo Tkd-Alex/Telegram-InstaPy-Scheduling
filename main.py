@@ -20,25 +20,24 @@ if not os.path.exists("telegram-bot-data"):
 telegram_token = open("telegram-bot-data/token.txt","r").read().strip()
 allowed_id = open("telegram-bot-data/allowed_id.txt","r").read().split("\n")
 
-# Create empty thread variable
-global thread_instaPy 
-thread_instaPy = None
+# Create array with all threads
+threads = {}
 
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
-def _execThread(bot, chat_id, name_job):
-    # If thread is not alive or not create start it.
-    global thread_instaPy
-    if not thread_instaPy or not thread_instaPy.isAlive():
-        thread_instaPy = Thread(name_job)
-        thread_instaPy.set_telegram(bot, chat_id)
-        thread_instaPy.start()
-    else:
-        bot.send_message(chat_id, text='Bot already executing!')
+# def _execThread(bot, chat_id, name_job):
+#     # If thread is not alive or not create start it.
+#     global thread_instaPy
+#     if not thread_instaPy or not thread_instaPy.isAlive():
+#         thread_instaPy = Thread(name_job)
+#         thread_instaPy.set_telegram(bot, chat_id)
+#         thread_instaPy.start()
+#     else:
+#         bot.send_message(chat_id, text='Bot already executing!')
 
-def execThread(bot, job):
-	_execThread(bot, job.context, job.name)
+# def execThread(bot, job):
+# 	_execThread(bot, job.context, job.name)
 
 def now(bot, update, args):
 	if len(args) > 0:
@@ -46,12 +45,30 @@ def now(bot, update, args):
 	else:
 		_execThread(bot, update.message.chat_id, "Thread-Instapy")
 
-def status_thread(bot, update):
-    # Responde with the status of thread.
-    if not thread_instaPy or not thread_instaPy.isAlive():
-        update.message.reply_text('InstaPy bot is OFF')
+def status_thread(bot, update, args):
+    if len(args) != 0:
+        message = ""
+        for arg in args:
+            if arg in threads:
+                message += "\nName: **{}**, Account: **{}**, Script: **{}**, Status: **{}**".format(
+                arg, threads[arg].username, threads[arg].script, "ON" if threads[arg].isAlive() else "OFF"
+            )
+            else:
+                message += "\nName: **{}** not found in thread lists.".format(arg)
     else:
-        update.message.reply_text('InstaPy bot is ON')
+        message = "There are {} threads configured.".format(len(threads))
+        index = 1
+        for thread in threads:
+            message += "\n{}) Name: **{}**, Account: **{}**, Script: **{}**, Status: **{}**".format(
+                index, thread, threads[thread].username, threads[thread].script, "ON" if threads[thread].isAlive() else "OFF"
+            )
+            index += 1
+
+    # Responde with the status of thread.
+    # if not thread_instaPy or not thread_instaPy.isAlive():
+    #     update.message.reply_text('InstaPy bot is OFF')
+    # else:
+    #     update.message.reply_text('InstaPy bot is ON')
 
 def set(bot, update, args, job_queue, chat_data):
     # Set a new job
@@ -164,7 +181,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("start", help))
     dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(CommandHandler("status", status_thread))
+    dp.add_handler(CommandHandler("status", status_thread, pass_args=True))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
@@ -172,7 +189,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("jobs", list_josb, pass_chat_data=True))
 
-    dp.add_handler(CommandHandler("scripts", list_scripts)
+    dp.add_handler(CommandHandler("scripts", list_scripts))
 
     dp.add_handler(CallbackQueryHandler(day_choose, pass_job_queue=True, pass_chat_data=True))
 
