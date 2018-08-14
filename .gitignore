@@ -125,3 +125,4 @@ tests/logs
 # telegram-scheduling
 instapy
 settings.json
+users.pickle
