@@ -90,7 +90,7 @@ def status_thread(bot, update, args):
             message = ""
             for arg in args:
                 if arg in threads:
-                    message += "\nName: <b>{}</b> Account: <b>{}</b> Script: <b>{}</b> Status: <b>{}</b>format(
+                    message += "\nName: <b>{}</b> Account: <b>{}</b> Script: <b>{}</b> Status: <b>{}</b>".format(
                     arg, threads[arg].username, threads[arg].script, "ON" if threads[arg].isAlive() else "OFF"
                 )
                 else:
@@ -99,7 +99,7 @@ def status_thread(bot, update, args):
             message = "There are {} threads configured.".format(len(threads))
             index = 1
             for thread in threads:
-                message += "\n{}) Name: <b>{}</b> Account: <b>{}</b> Script: <b>{}</b> Status: <b>{}</b>format(
+                message += "\n{}) Name: <b>{}</b> Account: <b>{}</b> Script: <b>{}</b> Status: <b>{}</b>".format(
                     index, thread, threads[thread].username, threads[thread].script, "ON" if threads[thread].isAlive() else "OFF"
                 )
                 index += 1
@@ -114,18 +114,15 @@ def set(bot, update, args, job_queue, chat_data):
         try:
             usernames = [ a['username'].lower() for a in users ]
             if not args[0].lower() in usernames:
-                print(1)
                 update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
                 return
 
             if args[1] in chat_data or args[1] in threads:
-                print(2)
-                update.message.reply_text("Sorry, job named <b>{}</b> is already used.".format(args[0]), parse_mode='HTML')
+                update.message.reply_text("Sorry, job named <b>{}</b> is already used.".format(args[1]), parse_mode='HTML')
                 return
 
             if not args[2] in scripts:
-                print(3)
-                update.message.reply_text("Sorry, script named <b>{}</b> is not in your scripts file.".format(args[0]), parse_mode='HTML')
+                update.message.reply_text("Sorry, script named <b>{}</b> is not in your scripts file.".format(args[2]), parse_mode='HTML')
                 return
 
             data = {
@@ -136,8 +133,7 @@ def set(bot, update, args, job_queue, chat_data):
                 'days': []
             }
             chat_data['tmpjob'] = data
-            print(data)
-
+            
             keyboard = [[InlineKeyboardButton("Sunday", callback_data='6'),
                          InlineKeyboardButton("Monday", callback_data='0'),
                          InlineKeyboardButton("Tuesday", callback_data='1'),
@@ -147,12 +143,10 @@ def set(bot, update, args, job_queue, chat_data):
                          InlineKeyboardButton("Saturday", callback_data='5')],
                         [InlineKeyboardButton("Everyday", callback_data='-1')]]
         
-            print(keyboard)
             update.message.reply_text('Choose a day: ', reply_markup=InlineKeyboardMarkup(keyboard))  
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /set <username> <job_name> <script_name> <hh:mm:ss>') 
-        except Exception as e:
-            print(str(e))    
+
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='HTML')
@@ -186,30 +180,30 @@ def day_choose(bot, update, job_queue, chat_data):
             selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
             job = job_queue.run_daily(exec_thread, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
 
-        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': "Everyday" if query.data == '-1' else selected_days }
+        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['scheduled'], 'job': job, 'days': "Everyday" if query.data == '-1' else selected_days }
         chat_data[name_job] = data
         del chat_data['tmpjob']
 
         bot.edit_message_text(text = "Job setted!", chat_id = query.message.chat_id, message_id = query.message.message_id)
- 
+
     else:
         if int(query.data) not in chat_data['tmpjob']['days']:
             chat_data['tmpjob']['days'].append(int(query.data))
         
         keyboard = [[InlineKeyboardButton("Sunday", callback_data='6'),
-                     InlineKeyboardButton("Monday", callback_data='0'),
-                     InlineKeyboardButton("Tuesday", callback_data='1'),
-                     InlineKeyboardButton("Wednesday", callback_data='2')],
-                     [InlineKeyboardButton("Thursday", callback_data='3'),
-                     InlineKeyboardButton("Friday", callback_data='4'),
-                     InlineKeyboardButton("Saturday", callback_data='5')],
-                     [InlineKeyboardButton("Confirm", callback_data='-2')]]
+                    InlineKeyboardButton("Monday", callback_data='0'),
+                    InlineKeyboardButton("Tuesday", callback_data='1'),
+                    InlineKeyboardButton("Wednesday", callback_data='2')],
+                    [InlineKeyboardButton("Thursday", callback_data='3'),
+                    InlineKeyboardButton("Friday", callback_data='4'),
+                    InlineKeyboardButton("Saturday", callback_data='5')],
+                    [InlineKeyboardButton("Confirm", callback_data='-2')]]
 
         selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
         bot.edit_message_text(text = "Select another day or confirm:\n{}".format(selected_days),
-                              chat_id = query.message.chat_id,
-                              message_id = query.message.message_id,
-                              reply_markup = InlineKeyboardMarkup(keyboard))
+                            chat_id = query.message.chat_id,
+                            message_id = query.message.message_id,
+                            reply_markup = InlineKeyboardMarkup(keyboard))
 
 def unset(bot, update, args, chat_data):
     if str(update.message.chat_id) in allowed_id:
@@ -236,7 +230,7 @@ def list_jobs(bot, update, chat_data):
     message = ""
     if len(chat_data) > 0:    
         for job in chat_data:
-            message = message + "- *Name:* {} *Schedule at*: {} *Days:* {}\n".format(chat_data[job]["name"], chat_data[job]["schedule"], chat_data[job]["days"])
+            message = message + "- *Name:* {} *Schedule at*: {} *Days:* {}\n".format(chat_data[job]["name"], chat_data[job]["scheduled"], chat_data[job]["days"])
         update.message.reply_text(message, parse_mode='HTML')
     else:
         update.message.reply_text("You are 0 jobs setted")
@@ -245,7 +239,7 @@ def list_scripts(bot, update):
     message = "You have <b>{}</b> scripts configured.".format(len(scripts))
     index = 1
     for script in scripts:
-        message += "\n{}) <b>{}</b>format(index, script)
+        message += "\n{}) <b>{}</b>".format(index, script)
         index += 1
     update.message.reply_text(message, parse_mode='HTML')
 

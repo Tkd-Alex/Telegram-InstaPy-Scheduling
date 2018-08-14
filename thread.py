@@ -17,7 +17,7 @@ class Thread (threading.Thread):
     
     def run(self):
         start = datetime.datetime.now().replace(microsecond=0)
-        self.bot.send_message(self.chat_id, text='InstaPy Bot - {} start at {}'.format(self.name, time.strftime("%X")))
+        self.bot.send_message(self.chat_id, text='InstaPy Bot - {} start at {}'.format(self.job_name, time.strftime("%X")))
         
         scripts[self.script_name](self.username, self.password, self.proxy)
         

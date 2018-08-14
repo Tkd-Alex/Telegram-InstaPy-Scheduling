@@ -123,6 +123,7 @@ logs/
 tests/logs
 
 # telegram-scheduling
-instapy
+instapy/
+assets/
 settings.json
 users.pickle
