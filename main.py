@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Import module
-import logging, time, json, datetime, random, sys, os, pickle
+import logging, time, json, datetime
+import random, sys, os, pickle, utils
+
+# Telegram imports
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from pprint import pprint
 
 # New method for create multiple and different scripts
 from scripts import scripts
@@ -33,24 +35,30 @@ threads = {}
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
-# def _execThread(bot, chat_id, name_job):
-#     # If thread is not alive or not create start it.
-#     global thread_instaPy
-#     if not thread_instaPy or not thread_instaPy.isAlive():
-#         thread_instaPy = Thread(name_job)
-#         thread_instaPy.set_telegram(bot, chat_id)
-#         thread_instaPy.start()
-#     else:
-#         bot.send_message(chat_id, text='Bot already executing!')
-
-# def execThread(bot, job):
-# 	_execThread(bot, job.context, job.name)
-
 # def now(bot, update, args):
 # 	if len(args) > 0:
 # 		_execThread(bot, update.message.chat_id, args[0])
 # 	else:
 # 		_execThread(bot, update.message.chat_id, "Thread-Instapy")
+
+def exec_thread(bot, thread_name):
+    if threads[thread_name].isAlive():
+        bot.send_message(threads[thread_name].chat_id, text="Sorry **{}** already executing!".format(parse_mode='Markdown'))
+    else:
+        threads[thread_name].start()
+
+def create_thread(bot, job):
+    context = job.context
+    threads[job.name] = Thread(
+        context['job_name'],
+        context['script_name'],
+        context['chat_id'],
+        bot,
+        context['user']['username'],
+        context['user']['password'],
+        context['user']['proxy']
+    )
+    exec_thread(bot, job.name)
 
 def status_thread(bot, update, args):
     if len(args) != 0:
@@ -74,7 +82,26 @@ def status_thread(bot, update, args):
 def set(bot, update, args, job_queue, chat_data):
     if str(update.message.chat_id) in allowed_id:
         try:
-            data = {'username': args[0], 'job_name': args[1], 'job_name': args[2], 'scheduled': args[3], 'days': []}
+            usernames = [ a['username'].lower() for a in users ]
+            if not args[0].lower() in usernames:
+                update.message.reply_text("Sorry, username **{}** is not saved.".format(args[0]), parse_mode='Markdown')
+                return
+
+            if args[1] in chat_data or args[1] in threads:
+                update.message.reply_text("Sorry, job named **{}** is already used.".format(args[0]), parse_mode='Markdown')
+                return
+
+            if not args[2] in scripts:
+                update.message.reply_text("Sorry, script named **{}** is not in your scripts file.".format(args[0]), parse_mode='Markdown')
+                return
+
+            data = {
+                'username': args[0], 
+                'job_name': args[1], 
+                'script_name': args[2], 
+                'scheduled': args[3], 
+                'days': []
+            }
             chat_data['tmpjob'] = data
 
             keyboard = [[InlineKeyboardButton("Sunday", callback_data='6'),
@@ -95,13 +122,27 @@ def set(bot, update, args, job_queue, chat_data):
 
 def day_choose(bot, update, job_queue, chat_data):
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    
     query = update.callback_query
-    chat_id = query.message.chat_id
-    time = chat_data['tmpjob']['schedule'].split(':')
-    name_job = chat_data['tmpjob']['name']
+    # chat_id = query.message.chat_id
+    
+    scheduled_time = utils.parse_time(chat_data['tmpjob']['scheduled'])
+    name_job = chat_data['tmpjob']['job_name']
+
+    context = {
+        "job_name": chat_data['tmpjob']['job_name'],
+        "script_name": chat_data['tmpjob']['script_name'],
+        "user": None,
+        "chat_id": query.message.chat_id,
+    }
+
+    for user in users:
+        if user['username'].lower() == chat_data['tmpjob']['username']:
+            context['user'] = user
+            break
 
     if query.data == '-1':
-        job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), context=chat_id, name=name_job)
+        job = job_queue.run_daily(execThread, scheduled_time, context=context, name=name_job)
         data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': "Everyday" }
         chat_data[name_job] = data
         del chat_data['tmpjob']
@@ -110,9 +151,9 @@ def day_choose(bot, update, job_queue, chat_data):
                               chat_id = query.message.chat_id,
                               message_id = query.message.message_id)
     elif query.data == '-2':
-        selectedDays = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
-        job = job_queue.run_daily(execThread, datetime.time(int(time[0]), int(time[1]), int(time[2])), days=tuple(chat_data['tmpjob']['days']), context=chat_id, name=name_job)
-        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': selectedDays }
+        selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
+        job = job_queue.run_daily(execThread, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
+        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': selected_days }
         chat_data[name_job] = data
         del chat_data['tmpjob']
 
@@ -132,8 +173,8 @@ def day_choose(bot, update, job_queue, chat_data):
                      InlineKeyboardButton("Saturday", callback_data='5')],
                      [InlineKeyboardButton("Confirm", callback_data='-2')]]
 
-        selectedDays = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
-        bot.edit_message_text(text = "Select another day or confirm:\n{}".format(selectedDays),
+        selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
+        bot.edit_message_text(text = "Select another day or confirm:\n{}".format(selected_days),
                               chat_id = query.message.chat_id,
                               message_id = query.message.message_id,
                               reply_markup = InlineKeyboardMarkup(keyboard))

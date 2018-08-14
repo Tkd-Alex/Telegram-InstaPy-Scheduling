@@ -1,15 +1,19 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import threading, datetime, json, time
 from scripts import scripts
 
 class Thread (threading.Thread):
-    def __init__(self, job_name, script_name, username, password, bot, chat_id):
+    def __init__(self, job_name, script_name, chat_id, bot, username, password, proxy=None):
         threading.Thread.__init__(self)
         self.job_name = job_name
         self.script_name = script_name
-        self.username = username
-        self.password = password
         self.bot = bot
         self.chat_id = chat_id 
+        self.username = username
+        self.password = password
+        self.proxy = proxy
     
     def run(self):
         start = datetime.datetime.now().replace(microsecond=0)

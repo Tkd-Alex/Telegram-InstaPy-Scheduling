@@ -1,5 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import random, time, traceback, instapy
 
+# Create your script here:
 def awesome(username, password):
     try:
         session = instapy.InstaPy(username=username, password=password)
@@ -15,6 +19,9 @@ def biglikers(username, password):
         session.end()
     except:
         print(traceback.format_exc())
+
+
+# !! Not delete the following code.
 
 functions = [f for fname, f in sorted(globals().items()) if callable(f)]
 scripts = {}
