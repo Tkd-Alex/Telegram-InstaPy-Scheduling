@@ -46,7 +46,7 @@ def now(bot, update, args):
 	else:
 		_execThread(bot, update.message.chat_id, "Thread-Instapy")
 
-def statusThread(bot, update):
+def status_thread(bot, update):
     # Responde with the status of thread.
     if not thread_instaPy or not thread_instaPy.isAlive():
         update.message.reply_text('InstaPy bot is OFF')
@@ -138,7 +138,7 @@ def unset(bot, update, args, chat_data):
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /unset <name_job>')
 
-def print_jobs(bot, update, chat_data):
+def list_josb(bot, update, chat_data):
     # Print the list of jobs
     message = ""
     if len(chat_data) > 0:    
@@ -148,6 +148,14 @@ def print_jobs(bot, update, chat_data):
     else:
         update.message.reply_text("Job not setted")
 
+def list_scripts(bot, update):
+    message = "You have **{}** scripts configured.".format(len(scripts))
+    index = 1
+    for script in scripts:
+        message += "\n{}) {}".format(index, script)
+        index += 1
+    update.message.reply_text(message, parse_mode='Markdown')
+
 if __name__ == '__main__':
     updater = Updater(telegram_token)
 
@@ -156,13 +164,15 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("start", help))
     dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(CommandHandler("status", statusThread))
+    dp.add_handler(CommandHandler("status", status_thread))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
-    dp.add_handler(CommandHandler("print", print_jobs, pass_chat_data=True))
+    dp.add_handler(CommandHandler("jobs", list_josb, pass_chat_data=True))
+
+    dp.add_handler(CommandHandler("scripts", list_scripts)
 
     dp.add_handler(CallbackQueryHandler(day_choose, pass_job_queue=True, pass_chat_data=True))
 
