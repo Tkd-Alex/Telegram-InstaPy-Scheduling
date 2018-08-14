@@ -273,7 +273,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("status", status_thread, pass_args=True))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
-    # dp.add_handler(CommandHandler("now", now, pass_args=True))
+    dp.add_handler(CommandHandler("now", now, pass_args=True))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("jobs", list_josb, pass_chat_data=True))
