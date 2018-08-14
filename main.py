@@ -65,7 +65,7 @@ def now(bot, update, args):
             update.message.reply_text('Usage: /now <script_name> <username>')     
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='HTML')
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def exec_thread(bot, job):
     if threads[job.name].isAlive():
@@ -85,29 +85,32 @@ def create_thread(bot, context):
     )
 
 def status_thread(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
-        if len(args) != 0:
-            message = ""
-            for arg in args:
-                if arg in threads:
-                    message += "\nName: <b>{}</b> Account: <b>{}</b> Script: <b>{}</b> Status: <b>{}</b>".format(
-                    arg, threads[arg].username, threads[arg].script, "ON" if threads[arg].isAlive() else "OFF"
-                )
-                else:
-                    message += "\nName: <b>{}</b> not found in thread lists.".format(arg)
-        else:
-            message = "There are {} threads configured.".format(len(threads))
-            index = 1
-            for thread in threads:
-                message += "\n{}) Name: <b>{}</b> Account: <b>{}</b> Script: <b>{}</b> Status: <b>{}</b>".format(
-                    index, thread, threads[thread].username, threads[thread].script, "ON" if threads[thread].isAlive() else "OFF"
-                )
-                index += 1
+    try:
+        if str(update.message.chat_id) in allowed_id:
+            if len(args) != 0:
+                message = ""
+                for arg in args:
+                    if arg in threads:
+                        message += "\n<b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
+                        arg, threads[arg].username, threads[arg].script_name, "ON" if threads[arg].isAlive() else "OFF"
+                    )
+                    else:
+                        message += "\n<b>Name:</b> {} not found in thread lists.".format(arg)
+            else:
+                message = "There are {} threads configured.".format(len(threads))
+                index = 1
+                for thread in threads:
+                    message += "\n{}) <b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
+                        index, thread, threads[thread].username, threads[thread].script_name, "ON" if threads[thread].isAlive() else "OFF"
+                    )
+                    index += 1
 
-        update.message.reply_text(message, parse_mode='HTML')
-    else:
-        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='HTML')
+            update.message.reply_text(message, parse_mode='HTML')
+        else:
+            message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+            update.message.reply_text(message, parse_mode='Markdown')
+    except Exception as e:
+        print(e)
 
 def set(bot, update, args, job_queue, chat_data):
     if str(update.message.chat_id) in allowed_id:
@@ -149,7 +152,7 @@ def set(bot, update, args, job_queue, chat_data):
 
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='HTML')
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def day_choose(bot, update, job_queue, chat_data):
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -180,12 +183,18 @@ def day_choose(bot, update, job_queue, chat_data):
             selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
             job = job_queue.run_daily(exec_thread, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
 
-        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['scheduled'], 'job': job, 'days': "Everyday" if query.data == '-1' else selected_days }
+        data = {
+            'name': name_job,
+            "script_name": chat_data['tmpjob']['script_name'],
+            'scheduled': chat_data['tmpjob']['scheduled'],
+            "username": chat_data['tmpjob']['username'],
+            'job': job, 
+            'days': "Everyday" if query.data == '-1' else selected_days 
+        }
         chat_data[name_job] = data
         del chat_data['tmpjob']
 
-        bot.edit_message_text(text = "Job setted!", chat_id = query.message.chat_id, message_id = query.message.message_id)
-
+        bot.edit_message_text(text="Job <b>{}</b> setted!".format(name_job), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode='HTML')
     else:
         if int(query.data) not in chat_data['tmpjob']['days']:
             chat_data['tmpjob']['days'].append(int(query.data))
@@ -223,18 +232,18 @@ def unset(bot, update, args, chat_data):
             update.message.reply_text('Usage: /unset <name_job>')   
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='HTML')
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def list_jobs(bot, update, chat_data):
-    # Print the list of jobs
     message = ""
     if len(chat_data) > 0:    
         for job in chat_data:
-            message = message + "- *Name:* {} *Schedule at*: {} *Days:* {}\n".format(chat_data[job]["name"], chat_data[job]["scheduled"], chat_data[job]["days"])
+            message = message + "- <b>Job name:</b> {} <b>Script name:</b> {} <b>Username:</b> {} <b>Schedule at</b>: {} <b>Days:</b> {}\n".format(
+                chat_data[job]["name"], chat_data[job]["script_name"], chat_data[job]["username"], chat_data[job]["scheduled"], chat_data[job]["days"])
         update.message.reply_text(message, parse_mode='HTML')
     else:
         update.message.reply_text("You are 0 jobs setted")
-
+    
 def list_scripts(bot, update):
     message = "You have <b>{}</b> scripts configured.".format(len(scripts))
     index = 1
@@ -261,7 +270,7 @@ def add_user(bot, update, args):
             update.message.reply_text('Usage: /add_user <username> <password> <proxy:optional> ')     
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='HTML')
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def delete_user(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
@@ -280,7 +289,7 @@ def delete_user(bot, update, args):
             update.message.reply_text('Usage: /delete_user <username>')     
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='HTML')
+        update.message.reply_text(message, parse_mode='Markdown')
 
 if __name__ == '__main__':
     updater = Updater(telegram_token)
