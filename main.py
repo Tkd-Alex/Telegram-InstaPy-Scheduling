@@ -41,15 +41,14 @@ def help(bot, update):
 # 	else:
 # 		_execThread(bot, update.message.chat_id, "Thread-Instapy")
 
-def exec_thread(bot, thread_name):
-    if threads[thread_name].isAlive():
-        bot.send_message(threads[thread_name].chat_id, text="Sorry **{}** already executing!".format(parse_mode='Markdown'))
+def exec_thread(bot, job):
+    if threads[job.name].isAlive():
+        bot.send_message(threads[job.name].chat_id, text="Sorry **{}** already executing!".format(job.name), parse_mode='Markdown')
     else:
-        threads[thread_name].start()
+        threads[job.name].start()
 
-def create_thread(bot, job):
-    context = job.context
-    threads[job.name] = Thread(
+def create_thread(bot, context):
+    threads[context['job_name']] = Thread(
         context['job_name'],
         context['script_name'],
         context['chat_id'],
@@ -58,7 +57,6 @@ def create_thread(bot, job):
         context['user']['password'],
         context['user']['proxy']
     )
-    exec_thread(bot, job.name)
 
 def status_thread(bot, update, args):
     if len(args) != 0:
@@ -124,42 +122,37 @@ def day_choose(bot, update, job_queue, chat_data):
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     
     query = update.callback_query
-    # chat_id = query.message.chat_id
     
     scheduled_time = utils.parse_time(chat_data['tmpjob']['scheduled'])
     name_job = chat_data['tmpjob']['job_name']
 
-    context = {
-        "job_name": chat_data['tmpjob']['job_name'],
-        "script_name": chat_data['tmpjob']['script_name'],
-        "user": None,
-        "chat_id": query.message.chat_id,
-    }
+    if query.data == '-1' or query.data == '-2':
+        context = {
+            "job_name": chat_data['tmpjob']['job_name'],
+            "script_name": chat_data['tmpjob']['script_name'],
+            "user": None,
+            "chat_id": query.message.chat_id,
+        }
 
-    for user in users:
-        if user['username'].lower() == chat_data['tmpjob']['username']:
-            context['user'] = user
-            break
+        for user in users:
+            if user['username'].lower() == chat_data['tmpjob']['username']:
+                context['user'] = user
+                break
 
-    if query.data == '-1':
-        job = job_queue.run_daily(execThread, scheduled_time, context=context, name=name_job)
-        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': "Everyday" }
+        create_thread(bot, context)
+    
+        if query.data == '-1':
+            job = job_queue.run_daily(exec_thread, scheduled_time, context=context, name=name_job)
+        else:
+            selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
+            job = job_queue.run_daily(exec_thread, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
+
+        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': "Everyday" if query.data == '-1' else selected_days }
         chat_data[name_job] = data
         del chat_data['tmpjob']
 
-        bot.edit_message_text(text = "Job setted!",
-                              chat_id = query.message.chat_id,
-                              message_id = query.message.message_id)
-    elif query.data == '-2':
-        selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
-        job = job_queue.run_daily(execThread, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
-        data = { 'name': name_job, 'schedule': chat_data['tmpjob']['schedule'], 'job': job, 'days': selected_days }
-        chat_data[name_job] = data
-        del chat_data['tmpjob']
-
-        bot.edit_message_text(text = "Job setted!",
-                              chat_id = query.message.chat_id,
-                              message_id = query.message.message_id)
+        bot.edit_message_text(text = "Job setted!", chat_id = query.message.chat_id, message_id = query.message.message_id)
+ 
     else:
         if int(query.data) not in chat_data['tmpjob']['days']:
             chat_data['tmpjob']['days'].append(int(query.data))
