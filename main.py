@@ -18,7 +18,7 @@ if not os.path.exists("telegram-bot-data"):
     os.makedirs("telegram-bot-data")
 
 telegram_token = open("telegram-bot-data/token.txt","r").read().strip()
-allowed_id = open("telegram-bot-data/allowed-id.txt","r").read().split("\n")
+allowed_id = open("telegram-bot-data/allowed_id.txt","r").read().split("\n")
 
 # Create empty thread variable
 global thread_instaPy 
@@ -32,7 +32,7 @@ def _execThread(bot, chat_id, name_job):
     global thread_instaPy
     if not thread_instaPy or not thread_instaPy.isAlive():
         thread_instaPy = Thread(name_job)
-        thread_instaPy.setTelegram(bot, chat_id)
+        thread_instaPy.set_telegram(bot, chat_id)
         thread_instaPy.start()
     else:
         bot.send_message(chat_id, text='Bot already executing!')

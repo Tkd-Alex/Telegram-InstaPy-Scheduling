@@ -1,0 +1,7 @@
+{
+    "telegram_token": "xxxx",
+    "allowed_id": [
+        "123123",
+        "342342"
+    ]
+}

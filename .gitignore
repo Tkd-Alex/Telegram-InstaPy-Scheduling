@@ -86,7 +86,6 @@ celerybeat-schedule
 .venv
 env/
 venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -103,14 +102,26 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-assets/
-instapy/
+# pylint file
+googlecl-pylint.rc.txt
+assets/chromedriver
+quickstart.py
+*,cover
+
+# Mac files
+.DS_Store
+
+# Storage
+instapy.db
 logs/
-db/
 
-telegram-bot-data/resources
-telegram-bot-data/*.txt
+# Editors
+.idea
+.vscode
 
-telegram-bot-data/config.ini
-telegram-bot-data/hashtags/
+# pytest
+tests/logs
 
+# telegram-scheduling
+instapy
+settings.json
