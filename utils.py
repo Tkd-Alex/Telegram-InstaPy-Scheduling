@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from thread import Thread
 
 def parse_time(time):
     time = time.split(":")
@@ -22,15 +23,4 @@ def reload_thread(thread):
         attribute['user']['password'],
         attribute['user']['proxy']
     )
-    return 
-
-def create_thread(bot, context):
-    threads[context['job_name']] = Thread(
-        context['job_name'],
-        context['script_name'],
-        context['chat_id'],
-        bot,
-        context['user']['username'],
-        context['user']['password'],
-        context['user']['proxy']
-    )
+    return new_thread

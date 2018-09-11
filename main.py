@@ -76,6 +76,17 @@ def exec_thread(bot, job):
         threads[job.name] = reload_thread(thread)
         threads[job.name].start()
 
+def create_thread(bot, context):
+    threads[context['job_name']] = Thread(
+        context['job_name'],
+        context['script_name'],
+        context['chat_id'],
+        bot,
+        context['user']['username'],
+        context['user']['password'],
+        context['user']['proxy']
+    )
+
 def status_thread(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
         if len(args) != 0:
