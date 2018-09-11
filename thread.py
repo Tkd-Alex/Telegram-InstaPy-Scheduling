@@ -42,6 +42,6 @@ class Thread (threading.Thread):
             f.seek (max (fsize-1024, 0), 0) # Set pos @ last n chars
             lines = f.readlines()           # Read to end
 
-        lines = lines[-9:]                  # Get last 10 lines
+        lines = lines[-5:]                  # Get last 5 lines
         message = ''.join(str(x.replace("INFO - ", "")) for x in lines)
         self.bot.send_message(self.chat_id, text=message)
