@@ -9,12 +9,23 @@ class Thread (threading.Thread):
         threading.Thread.__init__(self)
         self.job_name = job_name
         self.script_name = script_name
-        self.bot = bot
         self.chat_id = chat_id 
+        self.bot = bot
         self.username = username
         self.password = password
         self.proxy = proxy
     
+    def return_attribute(self):
+        return {
+            "job_name": self.job_name,
+            "script_name": self.script_name,
+            "chat_id": self.chat_id ,
+            "bot": self.bot,
+            "username": self.username,
+            "password": self.password,
+            "proxy": self.proxy
+        }
+
     def run(self):
         start = datetime.datetime.now().replace(microsecond=0)
         self.bot.send_message(self.chat_id, text='InstaPy Bot - {} start at {}'.format(self.job_name, time.strftime("%X")))

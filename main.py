@@ -3,7 +3,7 @@
 
 # Import module
 import logging, time, json, datetime
-import random, sys, os, pickle, utils
+import random, sys, os, pickle
 
 # Telegram imports
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler
@@ -14,6 +14,8 @@ from scripts import scripts
 
 # Thread class in another file
 from thread import Thread
+
+from utils import *
 
 # Load settings
 with open('settings.json') as f:
@@ -71,18 +73,8 @@ def exec_thread(bot, job):
     if threads[job.name].isAlive():
         bot.send_message(threads[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
     else:
+        threads[job.name] = reload_thread(thread)
         threads[job.name].start()
-
-def create_thread(bot, context):
-    threads[context['job_name']] = Thread(
-        context['job_name'],
-        context['script_name'],
-        context['chat_id'],
-        bot,
-        context['user']['username'],
-        context['user']['password'],
-        context['user']['proxy']
-    )
 
 def status_thread(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
@@ -156,7 +148,7 @@ def day_choose(bot, update, job_queue, chat_data):
     
     query = update.callback_query
     
-    scheduled_time = utils.parse_time(chat_data['tmpjob']['scheduled'])
+    scheduled_time = parse_time(chat_data['tmpjob']['scheduled'])
     name_job = chat_data['tmpjob']['job_name']
 
     if query.data == '-1' or query.data == '-2':

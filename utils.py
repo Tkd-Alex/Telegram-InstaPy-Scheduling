@@ -10,3 +10,27 @@ def parse_time(time):
     s = int( time[2] )
     time = datetime.time(h, m, s)
     return time
+
+def reload_thread(thread):
+    attribute = thread.return_attribute()
+    new_thread = Thread(
+        attribute['job_name'],
+        attribute['script_name'],
+        attribute['chat_id'],
+        attribute['bot'],
+        attribute['user']['username'],
+        attribute['user']['password'],
+        attribute['user']['proxy']
+    )
+    return 
+
+def create_thread(bot, context):
+    threads[context['job_name']] = Thread(
+        context['job_name'],
+        context['script_name'],
+        context['chat_id'],
+        bot,
+        context['user']['username'],
+        context['user']['password'],
+        context['user']['proxy']
+    )
