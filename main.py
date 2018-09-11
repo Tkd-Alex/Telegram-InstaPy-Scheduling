@@ -73,7 +73,7 @@ def exec_thread(bot, job):
     if threads[job.name].isAlive():
         bot.send_message(threads[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
     else:
-        threads[job.name] = reload_thread(thread)
+        threads[job.name] = reload_thread(threads[job.name])
         threads[job.name].start()
 
 def create_thread(bot, context):
