@@ -21,9 +21,11 @@ class Thread (threading.Thread):
             "script_name": self.script_name,
             "chat_id": self.chat_id ,
             "bot": self.bot,
-            "username": self.username,
-            "password": self.password,
-            "proxy": self.proxy
+            "user": {
+                "username": self.username,
+                "password": self.password,
+                "proxy": self.proxy
+            }
         }
 
     def run(self):
