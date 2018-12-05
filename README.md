@@ -25,7 +25,7 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
  ```
 6. Write your personal scripts:
 #### How? 
-- Edit *scripts.py*
+- Rename *scripts.py.dist* in *scripts.py* and edit it.
 - Create a function with name as you preferred and put inside an InstaPy script, for example:
 ```python
 def script_for_big_like(username, password, proxy):
@@ -33,7 +33,7 @@ def script_for_big_like(username, password, proxy):
     then put your instapy script.
 ```
 - Save and exit.
-9. Launch *main.py*.
+1. Launch *main.py*.
 
 ### Avaiable commands
 #### Users management
