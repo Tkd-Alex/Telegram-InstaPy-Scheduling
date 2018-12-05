@@ -127,3 +127,6 @@ instapy/
 assets/
 settings.json
 users.pickle
+scripts.py
+proxy_extension.py 
+
