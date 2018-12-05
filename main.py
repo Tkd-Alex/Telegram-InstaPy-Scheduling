@@ -54,13 +54,14 @@ def now(bot, update, args):
                 if user['username'].lower() == args[1].lower():
                     break
             temp_process = Process(
+                settings['instapy_folder'],
                 job_name,
                 args[0],
                 update.message.chat_id,
                 bot,
                 user['username'],
                 user['password'],
-                user['proxy']
+                proxy=user['proxy']
             )
             temp_process.start()       
         except (IndexError, ValueError):
@@ -78,13 +79,14 @@ def exec_process(bot, job):
 
 def create_process(bot, context):
     process_array[context['job_name']] = Process(
+        settings['instapy_folder'],
         context['job_name'],
         context['script_name'],
         context['chat_id'],
         bot,
         context['user']['username'],
         context['user']['password'],
-        context['user']['proxy']
+        proxy=context['user']['proxy']
     )
 
 def status_process(bot, update, args):

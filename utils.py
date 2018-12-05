@@ -15,13 +15,14 @@ def parse_time(time):
 def reload_process(process):
     attribute = process.return_attribute()
     new_process = Process(
+        attribute['instapy_folder'],
         attribute['job_name'],
         attribute['script_name'],
         attribute['chat_id'],
         attribute['bot'],
         attribute['user']['username'],
         attribute['user']['password'],
-        attribute['user']['proxy']
+        proxy=attribute['user']['proxy']
     )
     return new_process
 

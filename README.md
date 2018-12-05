@@ -12,28 +12,28 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
 - Telegram bot token.
 
 ### How to setup
-1. Clone this repo in your InstaPy folder.
-2. Create a bot with [@BotFather](https://telegram.me/BotFather).
-3. Rename *settings.json.dist* => *settings.json*.
-4. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
-5. Populate *settings.json* with your data. 
+1. Create a bot with [@BotFather](https://telegram.me/BotFather).
+2. Rename *settings.json.dist* => *settings.json*.
+3. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
+4. Populate *settings.json* with your data. 
 ```
 {
     "telegram_token": "xxxx",
+    "instapy_folder": "/home/xxxx/GitHub/instapy_bot",
     "allowed_id": [ "chat_id from GiveChatId_Bot", "342342" ]
 }
- ```
-6. Write your personal scripts:
+```
+5. Write your personal scripts:
 #### How? 
 - Rename *scripts.py.dist* in *scripts.py* and edit it.
-- Create a function with name as you preferred and put inside an InstaPy script, for example:
+- Create a function with name as you preferred and put inside an InstaPy script, for example **(Make sure your first param is InstaPy)**:
 ```python
-def script_for_big_like(username, password, proxy):
-    session = instapy.InstaPy(username=username, password=password)
+def script_for_big_like(InstaPy, username, password, proxy):
+    session = InstaPy(username=username, password=password)
     then put your instapy script.
 ```
 - Save and exit.
-1. Launch *main.py*.
+- Launch *main.py*.
 
 ### Avaiable commands
 #### Users management

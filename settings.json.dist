@@ -1,5 +1,6 @@
 {
     "telegram_token": "xxxx",
+    "instapy_folder": "/home/.../.../folder_instapy",
     "allowed_id": [
         "123123",
         "342342"
