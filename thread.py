@@ -3,7 +3,7 @@
 
 import threading, datetime, json, time
 from scripts import scripts
-from utils import parse_loglines
+from thread_utils import parse_loglines
 
 class Thread (threading.Thread):
     def __init__(self, job_name, script_name, chat_id, bot, username, password, proxy=None):
