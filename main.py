@@ -12,8 +12,8 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 # New method for create multiple and different scripts
 from scripts import scripts
 
-# Thread class in another file
-from thread import Thread
+# Process class in another file
+from process import Process
 
 from utils import *
 
@@ -31,8 +31,8 @@ except (FileNotFoundError, IOError):
     users = []
     pickle.dump(users, open('users.pickle', 'wb'))
 
-# Create array with all threads
-threads = {}
+# Create array with all process
+process_array = {}
 
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
@@ -53,7 +53,7 @@ def now(bot, update, args):
             for user in users:
                 if user['username'].lower() == args[1].lower():
                     break
-            temp_thread = Thread(
+            temp_process = Process(
                 job_name,
                 args[0],
                 update.message.chat_id,
@@ -62,22 +62,22 @@ def now(bot, update, args):
                 user['password'],
                 user['proxy']
             )
-            temp_thread.start()       
+            temp_process.start()       
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /now <script_name> <username>')     
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
 
-def exec_thread(bot, job):
-    if threads[job.name].isAlive():
-        bot.send_message(threads[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
+def exec_process(bot, job):
+    if process_array[job.name].isAlive():
+        bot.send_message(process_array[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
     else:
-        threads[job.name] = reload_thread(threads[job.name])
-        threads[job.name].start()
+        process_array[job.name] = reload_process(process_array[job.name])
+        process_array[job.name].start()
 
-def create_thread(bot, context):
-    threads[context['job_name']] = Thread(
+def create_process(bot, context):
+    process_array[context['job_name']] = Process(
         context['job_name'],
         context['script_name'],
         context['chat_id'],
@@ -87,23 +87,23 @@ def create_thread(bot, context):
         context['user']['proxy']
     )
 
-def status_thread(bot, update, args):
+def status_process(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
         if len(args) != 0:
             message = ""
             for arg in args:
-                if arg in threads:
+                if arg in process_array:
                     message += "\n<b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
-                    arg, threads[arg].username, threads[arg].script_name, "ON" if threads[arg].isAlive() else "OFF"
+                    arg, process_array[arg].username, process_array[arg].script_name, "ON" if process_array[arg].isAlive() else "OFF"
                 )
                 else:
-                    message += "\n<b>Name:</b> {} not found in thread lists.".format(arg)
+                    message += "\n<b>Name:</b> {} not found in process lists.".format(arg)
         else:
-            message = "There are {} threads configured.".format(len(threads))
+            message = "There are {} process configured.".format(len(process_array))
             index = 1
-            for thread in threads:
+            for proc in process_array:
                 message += "\n{}) <b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
-                    index, thread, threads[thread].username, threads[thread].script_name, "ON" if threads[thread].isAlive() else "OFF"
+                    index, proc, process_array[proc].username, process_array[proc].script_name, "ON" if process_array[proc].isAlive() else "OFF"
                 )
                 index += 1
 
@@ -120,7 +120,7 @@ def set(bot, update, args, job_queue, chat_data):
                 update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
                 return
 
-            if args[1] in chat_data or args[1] in threads:
+            if args[1] in chat_data or args[1] in process_array:
                 update.message.reply_text("Sorry, job named <b>{}</b> is already used.".format(args[1]), parse_mode='HTML')
                 return
 
@@ -175,13 +175,13 @@ def day_choose(bot, update, job_queue, chat_data):
                 context['user'] = user
                 break
 
-        create_thread(bot, context)
+        create_process(bot, context)
     
         if query.data == '-1':
-            job = job_queue.run_daily(exec_thread, scheduled_time, context=context, name=name_job)
+            job = job_queue.run_daily(exec_process, scheduled_time, context=context, name=name_job)
         else:
             selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
-            job = job_queue.run_daily(exec_thread, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
+            job = job_queue.run_daily(exec_process, scheduled_time, days=tuple(chat_data['tmpjob']['days']), context=context, name=name_job)
 
         data = {
             'name': name_job,
@@ -218,11 +218,11 @@ def unset(bot, update, args, chat_data):
     if str(update.message.chat_id) in allowed_id:
         try:
             name_job = args[0]
-            if name_job in chat_data and name_job in threads:
+            if name_job in chat_data and name_job in process_array:
                 job = chat_data[name_job]["job"]
                 job.schedule_removal()
 
-                del threads[name_job]
+                del process_array[name_job]
                 del chat_data[name_job]
 
                 update.message.reply_text('Job <b>{}</b> successfully unset!'.format(name_job), parse_mode='HTML')
@@ -312,7 +312,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("start", help))
     dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(CommandHandler("status", status_thread, pass_args=True))
+    dp.add_handler(CommandHandler("status", status_process, pass_args=True))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
