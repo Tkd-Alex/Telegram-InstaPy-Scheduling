@@ -71,7 +71,7 @@ def now(bot, update, args):
         update.message.reply_text(message, parse_mode='Markdown')
 
 def exec_process(bot, job):
-    if process_array[job.name].isAlive():
+    if process_array[job.name].is_alive():
         bot.send_message(process_array[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
     else:
         process_array[job.name] = reload_process(process_array[job.name])
@@ -96,7 +96,7 @@ def status_process(bot, update, args):
             for arg in args:
                 if arg in process_array:
                     message += "\n<b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
-                    arg, process_array[arg].username, process_array[arg].script_name, "ON" if process_array[arg].isAlive() else "OFF"
+                    arg, process_array[arg].username, process_array[arg].script_name, "ON" if process_array[arg].is_alive() else "OFF"
                 )
                 else:
                     message += "\n<b>Name:</b> {} not found in process lists.".format(arg)
@@ -105,7 +105,7 @@ def status_process(bot, update, args):
             index = 1
             for proc in process_array:
                 message += "\n{}) <b>Name:</b> {} <b>Account:</b> {} <b>Script:</b> {} <b>Status:</b> {}".format(
-                    index, proc, process_array[proc].username, process_array[proc].script_name, "ON" if process_array[proc].isAlive() else "OFF"
+                    index, proc, process_array[proc].username, process_array[proc].script_name, "ON" if process_array[proc].is_alive() else "OFF"
                 )
                 index += 1
 
