@@ -51,6 +51,7 @@ def script_for_big_like(InstaPy, username, password, proxy):
 | /jobs    |                                                        | Print all setted jobs                            |
 | /scripts |                                                        | Print all your scripts                           |
 | /status  | \<job_name:optional\>                                  | Print the status of all your thread or single.   |
+| /logs    | \<username\> \<line_number\>                           | Show n lines of username/general.log file.       |
 | /now     | \<username\> \<script_name\>                           | Run immediately.                                 |
-| /stop    | \<job_name\>                                           | Stop immediately.                                 |
+| /stop    | \<job_name\>                                           | Stop immediately.                                |
 

@@ -355,6 +355,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("help", help))
 
     dp.add_handler(CommandHandler("status", status_process, pass_args=True))
+    dp.add_handler(CommandHandler("logs", logs, pass_chat_data=True))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
