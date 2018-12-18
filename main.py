@@ -72,7 +72,7 @@ def now(bot, update, args):
                 update.message.reply_text("Sorry, script named <b>{}</b> is not in your scripts file.".format(args[0]), parse_mode='HTML')
                 return
 
-            job_name = "{}_temp_{}".format(args[0], time.time())
+            job_name = "{}_temp_{}".format(args[0], 1)
             for user in users:
                 if user['username'].lower() == args[1].lower():
                     break
@@ -93,6 +93,7 @@ def now(bot, update, args):
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
 
+"""
 def stop(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
         try:
@@ -100,17 +101,21 @@ def stop(bot, update, args):
                 update.message.reply_text("Sorry, job named <b>{}</b> is not in jobs array.".format(args[0]), parse_mode='HTML')
                 return
 
-            process_array[args[0]].end()
-            update.message.reply_text("Job <b>{}</b> ended. Wait for process response".format(args[0]), parse_mode='HTML')
+            if process_array[args[0]].is_alive():
+                process_array[args[0]].end()
+                update.message.reply_text("Job <b>{}</b> ended. Wait for process response".format(args[0]), parse_mode='HTML')
 
-            time.sleep(10)
-            del process_array[args[0]]
-            
+                time.sleep(10)
+                del process_array[args[0]]
+            else:
+                pdate.message.reply_text("Job <b>{}</b> not running".format(args[0]), parse_mode='HTML')
+
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /stop <job_name>')
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
+"""
 
 def exec_process(bot, job):
     if process_array[job.name].is_alive():
@@ -361,7 +366,7 @@ if __name__ == '__main__':
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
-    dp.add_handler(CommandHandler("stop", stop, pass_args=True))
+    # dp.add_handler(CommandHandler("stop", stop, pass_args=True))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("jobs", list_jobs, pass_chat_data=True))

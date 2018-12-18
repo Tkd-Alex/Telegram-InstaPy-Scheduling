@@ -51,8 +51,6 @@ class Process (multiprocessing.Process):
         
         self.bot.send_message(self.chat_id, text=parse_loglines( lines[-20:] ), parse_mode='HTML')
 
-        exit()
-
     def run(self):
         sys.path.append(self.instapy_path)  
         from instapy import InstaPy      
