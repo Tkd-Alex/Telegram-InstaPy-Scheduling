@@ -15,7 +15,7 @@ from scripts import scripts
 # Process class in another file
 from process import Process, reload_process
 
-from stringparse import parse_time
+from stringparse import parse_time, clear_lines
 
 # Load settings
 with open('settings.json') as f:
@@ -36,6 +36,27 @@ process_array = {}
 
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
+
+def logs(bot, update, args):
+    if str(update.message.chat_id) in allowed_id:
+        try:
+            usernames = [ a['username'].lower() for a in users ]
+            if not args[0].lower() in usernames:
+                update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
+                return
+
+            logsline = int( args[1] )
+            with open('{}/logs/{}/general.log'.format(settings['instapy_folder'], args[0].lower()), "r") as f:
+                lines = f.readlines()
+            message = clear_lines( '\n'.join(x for x in lines), username=args[0].lower() )
+            message = message.split('\n')[-logsline]
+            update.message.reply_text(message, parse_mode='HTML')
+
+        except (IndexError, ValueError):
+            update.message.reply_text('Usage: /logs <username> <logs_line>')
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
 
 def now(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
@@ -84,7 +105,7 @@ def stop(bot, update, args):
             del process_array[args[0]]
             
         except (IndexError, ValueError):
-            update.message.reply_text('Usage: /now <script_name> <username>')
+            update.message.reply_text('Usage: /stop <job_name>')
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')

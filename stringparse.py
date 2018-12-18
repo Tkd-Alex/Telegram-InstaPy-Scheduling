@@ -29,6 +29,12 @@ _____________________________________________________________
 INFO [2018-12-16 18:28:29] [tkd_alex]  --> Total people unfollowed : 397
 
 """
+def clear_lines(message, username=None):
+    lines = message.replace('-->', '').split('\n') # Remove arrow
+    # Clear lines, remove space and INFO [2018-12-16 18:28:29] [tkd_alex]
+    message = '\n'.join( ( line.strip() if username is None else line[line.find("[{}]".format(username)):].strip() )  for line in lines if line.strip() != "")
+    return message
+
 def parse_loglines(lines, username=None):
     # Merge the string by new line char. Keep the text between 'sessional live report' and 'OOOOOO'
     message = '\n'.join(x for x in lines)
@@ -41,7 +47,5 @@ def parse_loglines(lines, username=None):
             message = message.replace("|> {}".format(boldword), "|> <b>{}</b>".format(boldword))
         return message
     else:
-        lines = message.replace('-->', '').split('\n') # Remove arrow
-        # Clear lines, remove space and INFO [2018-12-16 18:28:29] [tkd_alex]
-        message = '\n'.join( ( line.strip() if username is None else line[line.find("[{}]".format(username)):].strip() )  for line in lines if line.strip() != "")
+        message = clear_lines(message, username)
         return message.split('\n')[-1] # Return the last line of logs.
