@@ -53,7 +53,7 @@ def now(bot, update, args):
             for user in users:
                 if user['username'].lower() == args[1].lower():
                     break
-            temp_process = Process(
+            process_array[job_name] = Process(
                 settings['instapy_folder'],
                 job_name,
                 args[0],
@@ -63,7 +63,7 @@ def now(bot, update, args):
                 user['password'],
                 proxy=user['proxy']
             )
-            temp_process.start()       
+            process_array[job_name].start()       
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /now <script_name> <username>')
     else:
@@ -84,6 +84,9 @@ def stop(bot, update, args):
 
             process_array[args[0]].end()
             update.message.reply_text("Job <b>{}</b> ended. Wait for process response".format(args[0]), parse_mode='HTML')
+
+            time.sleep(10)
+            del process_array[args[0]]
             
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /now <script_name> <username>')
