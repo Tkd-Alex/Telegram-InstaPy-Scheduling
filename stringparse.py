@@ -35,14 +35,13 @@ def parse_loglines(lines, username=None):
     if 'Session ended!' in message:
         message = message[message.find('Sessional Live Report'):message.find('OOOOOO')]
         lines = message.split('\n')
-        message = '\n'.join(x.strip() for x in lines if x.strip() != "")
+        message = '\n'.join(line.strip() for line in lines if line.strip() != "")
         for boldword in [ "LIKED", "COMMENTED", "FOLLOWED", "UNFOLLOWED", "INAPPROPRIATE", "NOT VALID" ]:
             message = message.replace("ALREADY {}".format(boldword), "<b>ALREADY {}</b>".format(boldword))
             message = message.replace("|> {}".format(boldword), "|> <b>{}</b>".format(boldword))
         return message
     else:
-        if username != None:
-            message = message[message.find("[{}]".format(username)):] # Remove INFO [2018-12-16 18:28:29] [tkd_alex]
         lines = message.replace('-->', '').split('\n') # Remove arrow
-        message = '\n'.join(x.strip() for x in lines if x.strip() != "") # Clear string line by line
+        # Clear lines, remove space and INFO [2018-12-16 18:28:29] [tkd_alex]
+        message = '\n'.join( ( line.strip() if username is None else line[line.find("[{}]".format(username)):].strip() )  for line in lines if line.strip() != "")
         return message.split('\n')[-1] # Return the last line of logs.
