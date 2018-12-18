@@ -73,11 +73,6 @@ def now(bot, update, args):
 def stop(bot, update, args):
     if str(update.message.chat_id) in allowed_id:
         try:
-            usernames = [ a['username'].lower() for a in users ]
-            if not args[1].lower() in usernames:
-                update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[1]), parse_mode='HTML')
-                return
-
             if not args[0] in process_array:
                 update.message.reply_text("Sorry, job named <b>{}</b> is not in jobs array.".format(args[0]), parse_mode='HTML')
                 return
