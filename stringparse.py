@@ -29,10 +29,16 @@ _____________________________________________________________
 INFO [2018-12-16 18:28:29] [tkd_alex]  --> Total people unfollowed : 397
 
 """
+
+def username_stripper(line, username):
+    line = line[line.find("[{}]".format(username)):]
+    line = line.replace("[{}]".format(username), "")
+    return line.strip()
+
 def clear_lines(message, username=None):
     lines = message.replace('-->', '').split('\n') # Remove arrow
     # Clear lines, remove space and INFO [2018-12-16 18:28:29] [tkd_alex]
-    message = '\n'.join( ( line.strip() if username is None else line[line.find("[{}]".format(username)):].strip() )  for line in lines if line.strip() != "")
+    message = '\n'.join( ( line.strip() if username is None else username_stripper(line, username) )  for line in lines if line.strip() != "")
     return message
 
 def parse_loglines(lines, username=None):

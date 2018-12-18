@@ -44,12 +44,14 @@ def logs(bot, update, args):
             if not args[0].lower() in usernames:
                 update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
                 return
-
             logsline = int( args[1] )
             with open('{}/logs/{}/general.log'.format(settings['instapy_folder'], args[0].lower()), "r") as f:
                 lines = f.readlines()
+            lines = lines[-(logsline+20):] # Prevent empty lines
+            message = '\n'.join(x for x in lines)
             message = clear_lines( '\n'.join(x for x in lines), username=args[0].lower() )
-            message = message.split('\n')[-logsline]
+            lines = message.split('\n')[-logsline:]
+            message = '\n'.join(x for x in lines)
             update.message.reply_text(message, parse_mode='HTML')
 
         except (IndexError, ValueError):
@@ -355,7 +357,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("help", help))
 
     dp.add_handler(CommandHandler("status", status_process, pass_args=True))
-    dp.add_handler(CommandHandler("logs", logs, pass_chat_data=True))
+    dp.add_handler(CommandHandler("logs", logs,  pass_args=True))
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
