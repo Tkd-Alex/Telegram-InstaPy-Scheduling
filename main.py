@@ -13,9 +13,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from scripts import scripts
 
 # Process class in another file
-from process import Process
+from process import Process, reload_process
 
-from utils import *
+from stringparse import parse_time
 
 # Load settings
 with open('settings.json') as f:

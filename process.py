@@ -2,32 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import multiprocessing, datetime, json, time, os, sys
+from stringparse import parse_loglines
 from scripts import scripts
 
-"""
-INFO [2018-12-05 19:22:48] [tkd_alex]  Sessional Live Report:
-        |> LIKED 62 images  |  ALREADY LIKED: 1
-        |> COMMENTED on 0 images
-        |> FOLLOWED 25 users  |  ALREADY FOLLOWED: 0
-        |> UNFOLLOWED 0 users
-        |> INAPPROPRIATE images: 344
-        |> NOT VALID users: 142
-On session start was FOLLOWING 6708 users & had 17371 FOLLOWERS
-
-OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-INFO [2018-12-05 19:22:48] [tkd_alex]  Session ended!
-oooooooooooooooooooooooooooooooooooooooooooooooooooo
-"""
-def parse_loglines(lines):
-    # Merge the string by new line char. Keep the text between 'sessional live report' and 'OOOOOO'
-    message = '\n'.join(x for x in lines)
-    message = message[message.find('Sessional Live Report'):message.find('OOOOOO')]
-    lines = message.split('\n')
-    message = '\n'.join(x.strip() for x in lines if x.strip() != "")
-    for boldword in [ "LIKED", "COMMENTED", "FOLLOWED", "UNFOLLOWED", "INAPPROPRIATE", "NOT VALID" ]:
-        message = message.replace("ALREADY {}".format(boldword), "<b>ALREADY {}</b>".format(boldword))
-        message = message.replace("|> {}".format(boldword), "|> <b>{}</b>".format(boldword))
-    return message
+def reload_process(process):
+    attribute = process.return_attribute()
+    new_process = Process(
+        attribute['instapy_path'],
+        attribute['job_name'],
+        attribute['script_name'],
+        attribute['chat_id'],
+        attribute['bot'],
+        attribute['user']['username'],
+        attribute['user']['password'],
+        proxy=attribute['user']['proxy']
+    )
+    return new_process
 
 class Process (multiprocessing.Process):
     def __init__(self, instapy_path, job_name, script_name, chat_id, bot, username, password, proxy=None):
@@ -55,6 +45,14 @@ class Process (multiprocessing.Process):
             }
         }
 
+    def end(self):
+        with open('{}/logs/{}/general.log'.format(self.instapy_path, self.username), "r") as f:
+            lines = f.readlines()
+        
+        self.bot.send_message(self.chat_id, text=parse_loglines( lines[-20:] ), parse_mode='HTML')
+
+        exit()
+
     def run(self):
         sys.path.append(self.instapy_path)  
         from instapy import InstaPy      
@@ -67,7 +65,5 @@ class Process (multiprocessing.Process):
         end = datetime.datetime.now().replace(microsecond=0)
         self.bot.send_message(self.chat_id, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-start))
         
-        with open('{}/logs/{}/general.log'.format(self.instapy_path, self.username), "r") as f:
-            lines = f.readlines()
+        self.end()
         
-        self.bot.send_message(self.chat_id, text=parse_loglines( lines[-20:] ), parse_mode='HTML')
