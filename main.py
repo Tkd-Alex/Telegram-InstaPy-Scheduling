@@ -65,7 +65,28 @@ def now(bot, update, args):
             )
             temp_process.start()       
         except (IndexError, ValueError):
-            update.message.reply_text('Usage: /now <script_name> <username>')     
+            update.message.reply_text('Usage: /now <script_name> <username>')
+    else:
+        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
+        update.message.reply_text(message, parse_mode='Markdown')
+
+def stop(bot, update, args):
+    if str(update.message.chat_id) in allowed_id:
+        try:
+            usernames = [ a['username'].lower() for a in users ]
+            if not args[1].lower() in usernames:
+                update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[1]), parse_mode='HTML')
+                return
+
+            if not args[0] in process_array:
+                update.message.reply_text("Sorry, job named <b>{}</b> is not in jobs array.".format(args[0]), parse_mode='HTML')
+                return
+
+            process_array[args[0]].end()
+            update.message.reply_text("Job <b>{}</b> ended. Wait for process response".format(args[0]), parse_mode='HTML')
+            
+        except (IndexError, ValueError):
+            update.message.reply_text('Usage: /now <script_name> <username>')
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
@@ -318,6 +339,7 @@ if __name__ == '__main__':
 
     dp.add_handler(CommandHandler("set", set, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
+    dp.add_handler(CommandHandler("stop", stop, pass_args=True))
 
     dp.add_handler(CommandHandler("unset", unset, pass_args=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("jobs", list_jobs, pass_chat_data=True))
