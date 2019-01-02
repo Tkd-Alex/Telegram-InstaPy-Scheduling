@@ -15,12 +15,19 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
 1. Create a bot with [@BotFather](https://telegram.me/BotFather).
 2. Rename *settings.json.dist* => *settings.json*.
 3. Contact [@GiveChatId_Bot](https://telegram.me/GiveChatId_Bot) and get your chat id with */chatid* command
-4. Populate *settings.json* with your data. 
+4. Populate *settings.json* and *main.py* with your data. 
 ```
 {
+    settings.json:
     "telegram_token": "xxxx",
     "instapy_folder": "/home/xxxx/GitHub/instapy_bot",
     "allowed_id": [ "chat_id from GiveChatId_Bot", "342342" ]
+}
+{
+
+    main.py:
+    db = '/path/to/Telegram-InstaPy-Scheduling/'
+
 }
 ```
 5. Write your personal scripts:
@@ -52,6 +59,6 @@ def script_for_big_like(InstaPy, username, password, proxy):
 | /scripts |                                                        | Print all your scripts                           |
 | /status  | \<job_name:optional\>                                  | Print the status of all your thread or single.   |
 | /logs    | \<username\> \<line_number\>                           | Show n lines of username/general.log file.       |
-| /now     | \<username\> \<script_name\>                           | Run immediately.                                 |
+| /now     | \<script_name\> \<username\>                           | Run immediately.                                 |
 | /stop    | \<job_name\>                                           | Stop immediately.                                |
 

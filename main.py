@@ -17,8 +17,10 @@ from process import Process, reload_process
 
 from stringparse import parse_time, clear_lines
 
+db = '/path/to/Telegram-InstaPy-Scheduling/'
+
 # Load settings
-with open('settings.json') as f:
+with open(db + 'settings.json') as f:
     settings = json.load(f)
 
 telegram_token = settings['telegram_token']
