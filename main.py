@@ -4,35 +4,28 @@
 # Import module
 import logging, time, json, datetime
 import random, sys, os, pickle
+import plac
+# Colored terminal
+from termcolor import colored, cprint
 
 # Telegram imports
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-
-# New method for create multiple and different scripts
-from scripts import scripts
 
 # Process class in another file
 from process import Process, reload_process
 
 from stringparse import parse_time, clear_lines
 
-# Load settings
-with open('settings.json') as f:
-    settings = json.load(f)
-
-telegram_token = settings['telegram_token']
-allowed_id = settings['allowed_id']
-
-# Load users
-try:
-    users = pickle.load(open('users.pickle', 'rb'))
-except (FileNotFoundError, IOError):
-    users = []
-    pickle.dump(users, open('users.pickle', 'wb'))
-
-# Create array with all process
+project_path = ""
+instapy_folder = ""
+users_path = 'users.pickle'
+# Create array of all users
+users = []
+# Create dictionary with all process
 process_array = {}
+# Create dictionary of all scripts availables
+scripts = {}
 
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
@@ -76,14 +69,16 @@ def now(bot, update, args):
             for user in users:
                 if user['username'].lower() == args[1].lower():
                     break
+                    
             process_array[job_name] = Process(
-                settings['instapy_folder'],
+                instapy_folder,
                 job_name,
                 args[0],
                 update.message.chat_id,
                 bot,
                 user['username'],
                 user['password'],
+                scripts,
                 proxy=user['proxy']
             )
             process_array[job_name].start()       
@@ -118,18 +113,19 @@ def exec_process(bot, job):
     if process_array[job.name].is_alive():
         bot.send_message(process_array[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
     else:
-        process_array[job.name] = reload_process(process_array[job.name])
+        process_array[job.name] = reload_process(process_array[job.name], scripts)
         process_array[job.name].start()
 
 def create_process(bot, context):
     process_array[context['job_name']] = Process(
-        settings['instapy_folder'],
+        instapy_folder,
         context['job_name'],
         context['script_name'],
         context['chat_id'],
         bot,
         context['user']['username'],
         context['user']['password'],
+        scripts,
         proxy=context['user']['proxy']
     )
 
@@ -353,7 +349,63 @@ def print_users(bot, update):
 def error(bot, update, error):
     logger.error('Update "%s" caused error "%s"' % (update, error))
 
-if __name__ == '__main__':
+@plac.annotations(
+    setting_file=("path of setting file", "option", "s", str))
+def main(setting_file='settings.json'):
+    global users, users_path, allowed_id, project_path, scripts, instapy_folder
+    # Load settings
+    try:
+        with open(setting_file) as f:
+            cprint("Load setting file from: \"%s\""%setting_file, "green" )
+            settings = json.load(f)
+    except (FileNotFoundError):
+        cprint("[ERROR] %s is not defined!"%setting_file, "red" )
+        sys.exit(1)
+            
+    if "telegram_token" in settings:
+        telegram_token = settings['telegram_token']
+        print(" - Telegram token:", telegram_token)
+    else:
+        cprint("[ERROR] Require variable: \"telegram_token\" in %s"%setting_file, "red" )
+        sys.exit(1)
+    if "allowed_id" in settings:
+        allowed_id     = settings['allowed_id']
+        print(" - Allowed ids:", allowed_id)
+    else:
+        cprint("[ERROR] Require variable: \"allowed_id\" in %s"%setting_file, "red" )
+        sys.exit(1)
+    if "instapy_folder" in settings:
+        instapy_folder = settings['instapy_folder']
+        print(" - InstaPy folder:", instapy_folder)
+    else:
+        cprint("[ERROR] Require variable: \"instapy_folder\" in %s"%setting_file, "red" )
+        sys.exit(1)
+
+    if "project_path" in settings:
+        project_path    = settings['project_path']
+        print(" - Path folder in: %s"%project_path)
+        sys.path.insert(0, project_path)
+
+    if "users_file" in settings:
+        users_path = settings['users_file']
+        
+    try:
+        # New method for create multiple and different scripts
+        from scripts import scripts
+    except (ModuleNotFoundError):
+        cprint("[ERROR] Require \"scripts.py\" file!", "red" )
+        sys.exit(1)
+    # Load all script availables
+    scripts = scripts().scripts
+
+    # Load users
+    try:
+        users = pickle.load(open(project_path + users_path, 'rb'))
+        print(" - Load users list from:", users_path)
+    except (FileNotFoundError, IOError):
+        pickle.dump(users, open(project_path + users_path, 'wb'))
+        cprint(" - Init user list in: %s"%users_path, "yellow" )
+
     updater = Updater(telegram_token, request_kwargs={'read_timeout': 20, 'connect_timeout': 20})
 
     dp = updater.dispatcher
@@ -382,4 +434,13 @@ if __name__ == '__main__':
     dp.add_error_handler(error)
 
     updater.start_polling(timeout=25)
+    
+    cprint("Telegram bot ready!", "green" )
+    
     updater.idle()
+
+    sys.exit(0)
+        
+if __name__ == '__main__':
+    plac.call(main)
+

@@ -3,9 +3,10 @@
 
 import multiprocessing, datetime, json, time, os, sys
 from stringparse import parse_loglines
-from scripts import scripts
+# Colored terminal
+from termcolor import colored, cprint
 
-def reload_process(process):
+def reload_process(process, scripts):
     attribute = process.return_attribute()
     new_process = Process(
         attribute['instapy_path'],
@@ -15,12 +16,13 @@ def reload_process(process):
         attribute['bot'],
         attribute['user']['username'],
         attribute['user']['password'],
+        scripts,
         proxy=attribute['user']['proxy']
     )
     return new_process
 
 class Process (multiprocessing.Process):
-    def __init__(self, instapy_path, job_name, script_name, chat_id, bot, username, password, proxy=None):
+    def __init__(self, instapy_path, job_name, script_name, chat_id, bot, username, password, scripts, proxy=None):
         multiprocessing.Process.__init__(self)
         self.instapy_path = instapy_path
         self.job_name = job_name
@@ -30,6 +32,7 @@ class Process (multiprocessing.Process):
         self.username = username
         self.password = password
         self.proxy = proxy
+        self.scripts = scripts
     
     def return_attribute(self):
         return {
@@ -52,12 +55,18 @@ class Process (multiprocessing.Process):
         
         end = datetime.datetime.now().replace(microsecond=0)
         self.bot.send_message(self.chat_id, text='InstaPy Bot end at {}\nExecution time {}'.format(time.strftime("%X"), end-self.start))
+        log_file = '{}/logs/{}/general.log'.format(self.instapy_path, self.username)
+        try:
+            with open(log_file, "r") as f:
+                lines = f.readlines()
         
-        with open('{}/logs/{}/general.log'.format(self.instapy_path, self.username), "r") as f:
-            lines = f.readlines()
+            message = parse_loglines( lines[-20:], self.username )
+            self.bot.send_message(self.chat_id, text=message, parse_mode='HTML')
+        except (FileNotFoundError):
+            message_str = "[ERROR] %s is not Available!"%log_file
+            cprint(message_str, "red" )
+            self.bot.send_message(self.chat_id, text="<b>%s</b>"%message_str, parse_mode='HTML')
         
-        message = parse_loglines( lines[-20:], self.username )
-        self.bot.send_message(self.chat_id, text=message, parse_mode='HTML')
         
     def run(self):
         sys.path.append(self.instapy_path)  
@@ -66,7 +75,7 @@ class Process (multiprocessing.Process):
         self.start = datetime.datetime.now().replace(microsecond=0)
         self.bot.send_message(self.chat_id, text='InstaPy Bot - {} start at {}'.format(self.job_name, time.strftime("%X")))
         
-        scripts[self.script_name](InstaPy, self.username, self.password, self.proxy)
+        self.scripts[self.script_name](InstaPy, self.username, self.password, self.proxy)
 
         self.end(forced=False)
         

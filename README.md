@@ -20,7 +20,9 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
 {
     "telegram_token": "xxxx",
     "instapy_folder": "/home/xxxx/GitHub/instapy_bot",
-    "allowed_id": [ "chat_id from GiveChatId_Bot", "342342" ]
+    "allowed_id": [ "chat_id from GiveChatId_Bot", "342342" ],
+    "project_path": [ "/path_where_you_want_load_your_files" ], # Optional
+    "users_file": "new_user_list_file.pickle"                   #Optional
 }
 ```
 5. Write your personal scripts:
@@ -33,7 +35,7 @@ def script_for_big_like(InstaPy, username, password, proxy):
     then put your instapy script.
 ```
 - Save and exit.
-- Launch *main.py*.
+- Launch *main.py*. You can pass the *settings.json* outside this folder, follow the help: *main.py -h* for other informations.
 
 ### Avaiable commands
 #### Users management
