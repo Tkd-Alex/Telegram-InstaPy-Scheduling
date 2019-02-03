@@ -51,6 +51,7 @@ def script_for_big_like(InstaPy, username, password, proxy):
 | /set     | \<username\> \<job_name\> \<script_name\> \<hh:mm:ss\> | Create a new schedule. Select the day from bot.  |
 | /unset   | \<job_name\>                                           | Delete a schedule.                               |
 | /jobs    |                                                        | Print all setted jobs                            |
+| /reload  |                                                        | Jobs are saved in db now. Use this cmd to reload.|
 | /scripts |                                                        | Print all your scripts                           |
 | /status  | \<job_name:optional\>                                  | Print the status of all your thread or single.   |
 | /logs    | \<username\> \<line_number\>                           | Show n lines of username/general.log file.       |
