@@ -125,7 +125,7 @@ def exec_process(bot, job):
 
 def create_process(bot, context):
     process_array[context['job_name']] = Process(
-        instapy_folder,
+        dict_settings["instapy_folder"],
         context['job_name'],
         context['script_name'],
         context['chat_id'],
