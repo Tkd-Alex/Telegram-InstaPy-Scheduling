@@ -258,9 +258,8 @@ def persistend_job(bot, job_queue, chat_data, days, chat_id, message_id=None, db
 
 def day_choose(bot, update, job_queue, chat_data):
     query = update.callback_query
-    
     if query.data == '-1' or query.data == '-2':
-        chat_data['tmpjob']['days'] = "Everyday" if query.data == '-1' else None
+        chat_data['tmpjob']['days'] = "Everyday" if query.data == '-1' else chat_data['tmpjob']['days']
         persistend_job(bot, job_queue, chat_data, days=chat_data['tmpjob']['days'], chat_id=query.message.chat_id, message_id=query.message.message_id)
     else:
         if int(query.data) not in chat_data['tmpjob']['days']:
@@ -275,7 +274,7 @@ def day_choose(bot, update, job_queue, chat_data):
                     InlineKeyboardButton("Saturday", callback_data='5')],
                     [InlineKeyboardButton("Confirm", callback_data='-2')]]
 
-        selected_days = ", ".join([days[i] for i in chat_data['tmpjob']['days']])
+        selected_days = ", ".join([utils.days[i] for i in chat_data['tmpjob']['days']])
         bot.edit_message_text(text = "Select another day or confirm:\n{}".format(selected_days),
                             chat_id = query.message.chat_id,
                             message_id = query.message.message_id,
@@ -292,7 +291,7 @@ def unset(bot, update, args, chat_data):
                 del process_array[job_name]
                 del chat_data[job_name]
 
-                utils.delete_job(database, name_jon, owner=str(update.message.chat_id))
+                utils.delete_job(database, job_name, owner=str(update.message.chat_id))
 
                 update.message.reply_text('Job <b>{}</b> successfully unset!'.format(job_name), parse_mode='HTML')
             else:
