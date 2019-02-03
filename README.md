@@ -21,8 +21,8 @@ Telegram-InstaPy-Scheduling is bot for telegram which helps user to schedule [*I
     "telegram_token": "xxxx",
     "instapy_folder": "/home/xxxx/GitHub/instapy_bot",
     "allowed_id": [ "chat_id from GiveChatId_Bot", "342342" ],
-    "project_path": [ "/path_where_you_want_load_your_files" ], # Optional
-    "users_file": "new_user_list_file.pickle"                   #Optional
+    "project_path": [ "/path_where_you_want_load_your_files" ], # Optional, default: ./
+    "users_file": "new_user_list_file.pickle"                   # Optional, default: users.pickle
 }
 ```
 5. Write your personal scripts:
@@ -54,6 +54,6 @@ def script_for_big_like(InstaPy, username, password, proxy):
 | /scripts |                                                        | Print all your scripts                           |
 | /status  | \<job_name:optional\>                                  | Print the status of all your thread or single.   |
 | /logs    | \<username\> \<line_number\>                           | Show n lines of username/general.log file.       |
-| /now     | \<username\> \<script_name\>                           | Run immediately.                                 |
+| /now     | \<script_name\> \<username\>                           | Run immediately.                                 |
 | /stop    | \<job_name\>                                           | Stop immediately.                                |
 
