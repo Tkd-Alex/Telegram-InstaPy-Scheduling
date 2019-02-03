@@ -21,7 +21,7 @@ def biglikers(InstaPy, username, password, proxy=None):
         print(traceback.format_exc())
 
 # !! Not delete the following code.
-class scripts:
+class Scripts:
     def __init__(self):
         functions = [f for fname, f in sorted(globals().items()) if callable(f)]
         self.scripts = {}

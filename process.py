@@ -3,6 +3,7 @@
 
 import multiprocessing, datetime, json, time, os, sys
 from stringparse import parse_loglines
+
 # Colored terminal
 from termcolor import colored, cprint
 
@@ -31,14 +32,15 @@ class Process (multiprocessing.Process):
         self.bot = bot
         self.username = username
         self.password = password
-        self.proxy = proxy
         self.scripts = scripts
-    
+        self.proxy = proxy
+        
     def return_attribute(self):
         return {
             "instapy_path": self.instapy_path,
             "job_name": self.job_name,
             "script_name": self.script_name,
+            "scripts": self.scripts,
             "chat_id": self.chat_id ,
             "bot": self.bot,
             "user": {
