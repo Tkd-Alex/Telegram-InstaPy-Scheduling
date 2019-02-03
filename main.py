@@ -3,42 +3,41 @@
 
 # Import module
 import logging, time, json, datetime
-import random, sys, os, pickle
+import random, sys, os, pickle, plac
+
+# Colored terminal
+from termcolor import colored, cprint
 
 # Telegram imports
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-# New method for create multiple and different scripts
-from scripts import scripts
-
 # Process class in another file
 from process import Process, reload_process
 
 from stringparse import parse_time, clear_lines
+from utils import safe_load_settings
 
-# Load settings
-with open('settings.json') as f:
-    settings = json.load(f)
-
-telegram_token = settings['telegram_token']
-allowed_id = settings['allowed_id']
-
-# Load users
-try:
-    users = pickle.load(open('users.pickle', 'rb'))
-except (FileNotFoundError, IOError):
-    users = []
-    pickle.dump(users, open('users.pickle', 'wb'))
-
-# Create array with all process
+# Create array of all users
+users = []
+# Create dictionary with all process
 process_array = {}
+# Create dictionary of all scripts availables
+scripts = {}
+
+dict_settings = {
+    "telegram_token": None,
+    "allowed_id": None,
+    "instapy_folder": None,
+    "users_path": "users.pickle",
+    "project_path": "./"
+}
 
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
 def logs(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             usernames = [ a['username'].lower() for a in users ]
             if not args[0].lower() in usernames:
@@ -61,7 +60,7 @@ def logs(bot, update, args):
         update.message.reply_text(message, parse_mode='Markdown')
 
 def now(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             usernames = [ a['username'].lower() for a in users ]
             if not args[1].lower() in usernames:
@@ -76,17 +75,20 @@ def now(bot, update, args):
             for user in users:
                 if user['username'].lower() == args[1].lower():
                     break
+
+                    
             process_array[job_name] = Process(
-                settings['instapy_folder'],
+                dict_settings['instapy_folder'],
                 job_name,
                 args[0],
                 update.message.chat_id,
                 bot,
                 user['username'],
                 user['password'],
+                scripts,
                 proxy=user['proxy']
             )
-            process_array[job_name].start()       
+            process_array[job_name].start()
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /now <script_name> <username>')
     else:
@@ -94,7 +96,7 @@ def now(bot, update, args):
         update.message.reply_text(message, parse_mode='Markdown')
 
 def stop(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             if not args[0] in process_array:
                 update.message.reply_text("Sorry, job named <b>{}</b> is not in jobs array.".format(args[0]), parse_mode='HTML')
@@ -118,23 +120,24 @@ def exec_process(bot, job):
     if process_array[job.name].is_alive():
         bot.send_message(process_array[job.name].chat_id, text="Sorry <b>{}</b> already executing!".format(job.name), parse_mode='HTML')
     else:
-        process_array[job.name] = reload_process(process_array[job.name])
+        process_array[job.name] = reload_process(process_array[job.name], scripts)
         process_array[job.name].start()
 
 def create_process(bot, context):
     process_array[context['job_name']] = Process(
-        settings['instapy_folder'],
+        instapy_folder,
         context['job_name'],
         context['script_name'],
         context['chat_id'],
         bot,
         context['user']['username'],
         context['user']['password'],
+        scripts,
         proxy=context['user']['proxy']
     )
 
 def status_process(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         if len(args) != 0:
             message = ""
             for arg in args:
@@ -156,10 +159,10 @@ def status_process(bot, update, args):
         update.message.reply_text(message, parse_mode='HTML')
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='Markdown')
+        update.message.reply_text(message, parse_mode='Markdown')  
 
 def set(bot, update, args, job_queue, chat_data):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             usernames = [ a['username'].lower() for a in users ]
             if not args[0].lower() in usernames:
@@ -261,7 +264,7 @@ def day_choose(bot, update, job_queue, chat_data):
                             reply_markup = InlineKeyboardMarkup(keyboard))
 
 def unset(bot, update, args, chat_data):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             name_job = args[0]
             if name_job in chat_data and name_job in process_array:
@@ -288,7 +291,7 @@ def list_jobs(bot, update, chat_data):
                 chat_data[job]["name"], chat_data[job]["script_name"], chat_data[job]["username"], chat_data[job]["scheduled"], chat_data[job]["days"])
         update.message.reply_text(message, parse_mode='HTML')
     else:
-        update.message.reply_text("You are 0 jobs setted")
+        update.message.reply_text("You are <b>0</b> jobs setted", parse_mode='HTML')
     
 def list_scripts(bot, update):
     message = "You have <b>{}</b> scripts configured.".format(len(scripts))
@@ -299,7 +302,7 @@ def list_scripts(bot, update):
     update.message.reply_text(message, parse_mode='HTML')
 
 def add_user(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             usernames = [ a['username'].lower() for a in users ]
             if args[0].lower() in usernames:
@@ -319,7 +322,7 @@ def add_user(bot, update, args):
         update.message.reply_text(message, parse_mode='Markdown')
 
 def delete_user(bot, update, args):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             usernames = [ a['username'].lower() for a in users ]
             if not args[0].lower() in usernames:
@@ -338,7 +341,7 @@ def delete_user(bot, update, args):
         update.message.reply_text(message, parse_mode='Markdown')
 
 def print_users(bot, update):
-    if str(update.message.chat_id) in allowed_id:
+    if str(update.message.chat_id) in dict_settings['allowed_id']:
         usernames = [ a['username'].lower() for a in users ]
         message = "You have <b>{}</b> accounts configured.".format(len(usernames))
         index = 1
@@ -353,8 +356,51 @@ def print_users(bot, update):
 def error(bot, update, error):
     logger.error('Update "%s" caused error "%s"' % (update, error))
 
-if __name__ == '__main__':
-    updater = Updater(telegram_token, request_kwargs={'read_timeout': 20, 'connect_timeout': 20})
+@plac.annotations(setting_file=("Path of settings.json file", "option", "s", str))
+def main(setting_file='settings.json'):
+    global scripts
+    global users
+    global dict_settings
+
+    try:
+        cprint("Load setting file from: \"%s\"" % setting_file, "green" )
+        with open(setting_file) as f:
+            settings_json = json.load(f)
+    except (FileNotFoundError):
+        cprint("[ERROR] %s is not defined!" % setting_file, "red" )
+        sys.exit(1)
+
+    for key in dict_settings:
+        result, value, message = safe_load_settings(key, settings_json)
+        if result is False:
+            cprint("[ERROR] {}".format(message), "red")
+            if key not in ["telegram_token", "instapy_folder", "allowed_id"]:
+                cprint("[WARNING] Load default value of: {} : {}".format(key, dict_settings[key]), "yellow")
+            else:
+                sys.exit()
+        else:
+            dict_settings[key] = value
+            cprint("[SUCCESS] {}".format(message), "green")
+
+    if dict_settings['project_path'] != "./":
+        sys.path.insert(0, dict_settings['project_path'])
+        
+    try:
+        from scripts import Scripts
+    except (ModuleNotFoundError):
+        cprint("[ERROR] Require \"scripts.py\" file!", "red" )
+        sys.exit(1)
+    
+    scripts = Scripts().scripts
+
+    try:
+        users = pickle.load(open(dict_settings['project_path'] + dict_settings['users_path'], 'rb'))
+        cprint("[SUCCESS] Load users list from: {}".format(dict_settings['users_path']), "green")
+    except (FileNotFoundError, IOError):
+        pickle.dump(users, open(dict_settings['project_path'] + dict_settings['users_path'], 'wb'))
+        cprint("[WARNING] Init user list in: {}".format(dict_settings['users_path']), "yellow" )
+
+    updater = Updater(dict_settings['telegram_token'], request_kwargs={'read_timeout': 20, 'connect_timeout': 20})
 
     dp = updater.dispatcher
 
@@ -382,4 +428,13 @@ if __name__ == '__main__':
     dp.add_error_handler(error)
 
     updater.start_polling(timeout=25)
+    
+    cprint("TELEGRAM-INSTAPY-SCHEDULING IS READY!", "green" )
+    
     updater.idle()
+
+    sys.exit(0)
+        
+if __name__ == '__main__':
+    plac.call(main)
+
