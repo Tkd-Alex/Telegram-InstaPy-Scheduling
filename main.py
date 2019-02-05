@@ -317,7 +317,7 @@ def list_jobs(bot, update, chat_data):
     message = ""
     if len(chat_data) > 0:    
         for job in chat_data:
-            message = message + "- <b>Job name:</b> {} <b>Script name:</b> {} <b>Username:</b> {} <b>Schedule at</b>: {} <b>Days:</b> {}\n".format(
+            message = message + "<b>Job name:</b> {}\n<b>Script name:</b> {}\n<b>Username:</b> {}\n<b>Schedule at</b>: {}\n<b>Days:</b> {}\n==========\n".format(
                 chat_data[job]["name"], chat_data[job]["script_name"], chat_data[job]["username"], chat_data[job]["scheduled"], chat_data[job]["days"])
         update.message.reply_text(message, parse_mode='HTML')
     else:
