@@ -46,6 +46,10 @@ def tail(f, n):
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
+def timenow(bot, update):
+    message = '<b>Current Date and Time:</b> ' + '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    update.message.reply_text(message, parse_mode='HTML')
+
 def vlogs(bot, update, args):
     if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
@@ -484,6 +488,8 @@ def main(setting_file='settings.json'):
     dp.add_handler(CommandHandler("users", print_users))
 
     dp.add_handler(CommandHandler("scripts", list_scripts))
+
+    dp.add_handler(CommandHandler("time", timenow))
 
     dp.add_handler(CallbackQueryHandler(day_choose, pass_job_queue=True, pass_chat_data=True))
 
