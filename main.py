@@ -46,11 +46,12 @@ def tail(f, n):
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
+# To display server date and time
 def timenow(bot, update):
     message = '<b>Current Date and Time:</b> ' + '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
     update.message.reply_text(message, parse_mode='HTML')
 
-def vlogs(bot, update, args):
+def logs(bot, update, args):
     if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
             usernames = [ a['username'].lower() for a in users ]
@@ -68,29 +69,6 @@ def vlogs(bot, update, args):
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /vlogs <username> <logs_line>')
 
-    else:
-        message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
-        update.message.reply_text(message, parse_mode='Markdown')
-
-def logs(bot, update, args):
-    if str(update.message.chat_id) in dict_settings['allowed_id']:
-        try:
-            usernames = [ a['username'].lower() for a in users ]
-            if not args[0].lower() in usernames:
-                update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
-                return
-            logsline = int( args[1] )
-            with open('{}/logs/{}/general.log'.format(dict_settings['instapy_folder'], args[0].lower()), "r") as f:
-                lines = f.readlines()
-            lines = lines[-(logsline+20):] # Prevent empty lines
-            message = '\n'.join(x for x in lines)
-            message = clear_lines( '\n'.join(x for x in lines), username=args[0].lower() )
-            lines = message.split('\n')[-logsline:]
-            message = '\n'.join(x for x in lines)
-            update.message.reply_text(message, parse_mode='HTML')
-
-        except (IndexError, ValueError):
-            update.message.reply_text('Usage: /logs <username> <logs_line>')
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
@@ -473,7 +451,6 @@ def main(setting_file='settings.json'):
 
     dp.add_handler(CommandHandler("status", status_process, pass_args=True))
     dp.add_handler(CommandHandler("logs", logs,  pass_args=True))
-    dp.add_handler(CommandHandler("vlogs", vlogs,  pass_args=True))
 
     dp.add_handler(CommandHandler("set", set_job, pass_args=True, pass_job_queue=True, pass_chat_data=True))
     dp.add_handler(CommandHandler("now", now, pass_args=True))
