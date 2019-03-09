@@ -20,6 +20,7 @@ from process import Process, reload_process
 
 from stringparse import parse_time, clear_lines
 import utils
+from codecs import open
 
 # Create array of all users
 users = []
@@ -38,11 +39,6 @@ dict_settings = {
 
 database = None
 
-def tail(f, n):
-    proc = subprocess.Popen(['tail', '-n', str(n), f], stdout=subprocess.PIPE)
-    lines = proc.stdout.read().splitlines()
-    return lines
-
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
@@ -59,16 +55,17 @@ def logs(bot, update, args):
                 update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
                 return
             logsline = int( args[1] )
-            logsfile = '{}/logs/{}/general.log'.format(dict_settings['instapy_folder'], args[0].lower())
-            message_lines = tail(logsfile, logsline)
-            message = ""
-            for line in message_lines:
-                message = message + line.decode('utf-8') + "\n" 
+            with open('{}/logs/{}/general.log'.format(dict_settings['instapy_folder'], args[0].lower()), "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            lines = lines[-(logsline+20):] # Prevent empty lines
+            message = '\n'.join(x for x in lines)
+            message = clear_lines( '\n'.join(x for x in lines), username=args[0].lower() )
+            lines = message.split('\n')[-logsline:]
+            message = '\n'.join(x for x in lines)
             update.message.reply_text(message, disable_web_page_preview=True, parse_mode='HTML')
 
         except (IndexError, ValueError):
-            update.message.reply_text('Usage: /vlogs <username> <logs_line>')
-
+            update.message.reply_text('Usage: /logs <username> <logs_line>')
     else:
         message = 'You have not the permission to use this bot.\nFor more details visit [Telegram-InstaPy-Scheduling](https://github.com/Tkd-Alex/Telegram-InstaPy-Scheduling)'
         update.message.reply_text(message, parse_mode='Markdown')
