@@ -3,7 +3,7 @@
 
 # Import module
 import logging, time, json, datetime
-import random, sys, os, pickle, plac
+import random, sys, os, pickle, plac, subprocess
 
 # Colored terminal
 from termcolor import colored, cprint
@@ -20,6 +20,7 @@ from process import Process, reload_process
 
 from stringparse import parse_time, clear_lines
 import utils
+from codecs import open
 
 # Create array of all users
 users = []
@@ -41,6 +42,11 @@ database = None
 def help(bot, update):
     update.message.reply_text('Hi! Use /set to start the bot')
 
+# To display server date and time
+def timenow(bot, update):
+    message = '<b>Current Date and Time:</b> ' + '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    update.message.reply_text(message, parse_mode='HTML')
+
 def logs(bot, update, args):
     if str(update.message.chat_id) in dict_settings['allowed_id']:
         try:
@@ -49,14 +55,14 @@ def logs(bot, update, args):
                 update.message.reply_text("Sorry, username <b>{}</b> is not saved.".format(args[0]), parse_mode='HTML')
                 return
             logsline = int( args[1] )
-            with open('{}/logs/{}/general.log'.format(settings['instapy_folder'], args[0].lower()), "r") as f:
+            with open('{}/logs/{}/general.log'.format(dict_settings['instapy_folder'], args[0].lower()), "r", encoding="utf-8") as f:
                 lines = f.readlines()
             lines = lines[-(logsline+20):] # Prevent empty lines
             message = '\n'.join(x for x in lines)
             message = clear_lines( '\n'.join(x for x in lines), username=args[0].lower() )
             lines = message.split('\n')[-logsline:]
             message = '\n'.join(x for x in lines)
-            update.message.reply_text(message, parse_mode='HTML')
+            update.message.reply_text(message, disable_web_page_preview=True, parse_mode='HTML')
 
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /logs <username> <logs_line>')
@@ -456,6 +462,8 @@ def main(setting_file='settings.json'):
     dp.add_handler(CommandHandler("users", print_users))
 
     dp.add_handler(CommandHandler("scripts", list_scripts))
+
+    dp.add_handler(CommandHandler("time", timenow))
 
     dp.add_handler(CallbackQueryHandler(day_choose, pass_job_queue=True, pass_chat_data=True))
 
