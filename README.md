@@ -64,4 +64,5 @@ def script_for_big_like(InstaPy, username, password, proxy):
 | /logs    | \<username\> \<line_number\>                           | Show n lines of username/general.log file.       |
 | /now     | \<script_name\> \<username\>                           | Run immediately.                                 |
 | /stop    | \<job_name\>                                           | Stop immediately.                                |
+| /time    |                                            | Prints current server time, useful for scheduling.                                |
 
