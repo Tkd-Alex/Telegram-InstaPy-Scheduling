@@ -119,7 +119,7 @@ def stop(bot, update, args):
                 time.sleep(3)
                 del process_array[args[0]]
             else:
-                pdate.message.reply_text("Job <b>{}</b> not running".format(args[0]), parse_mode='HTML')
+                update.message.reply_text("Job <b>{}</b> not running".format(args[0]), parse_mode='HTML')
 
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /stop <job_name>')
