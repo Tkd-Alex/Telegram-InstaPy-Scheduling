@@ -119,7 +119,7 @@ def stop(bot, update, args):
                 time.sleep(3)
                 del process_array[args[0]]
             else:
-                pdate.message.reply_text("Job <b>{}</b> not running".format(args[0]), parse_mode='HTML')
+                update.message.reply_text("Job <b>{}</b> not running".format(args[0]), parse_mode='HTML')
 
         except (IndexError, ValueError):
             update.message.reply_text('Usage: /stop <job_name>')
@@ -254,9 +254,9 @@ def persistend_job(bot, job_queue, chat_data, days, chat_id, message_id=None, db
         
         if db_persist is True:
             utils.save_element(database, data, owner=chat_id, entity="job")
-            bot.edit_message_text(text="Job <b>{}</b> setted!".format(job_name), chat_id=chat_id, message_id=message_id, parse_mode='HTML')
+            bot.edit_message_text(text="Job <b>{}</b> set!".format(job_name), chat_id=chat_id, message_id=message_id, parse_mode='HTML')
         else:
-            bot.send_message(text="Job <b>{}</b> setted!".format(job_name), chat_id=chat_id, parse_mode='HTML')
+            bot.send_message(text="Job <b>{}</b> set!".format(job_name), chat_id=chat_id, parse_mode='HTML')
         
         data['job'] = job
         chat_data[job_name] = data
@@ -327,7 +327,7 @@ def list_jobs(bot, update, chat_data):
                 chat_data[job]["name"], chat_data[job]["script_name"], chat_data[job]["username"], chat_data[job]["scheduled"], chat_data[job]["days"])
         update.message.reply_text(message, parse_mode='HTML')
     else:
-        update.message.reply_text("You are <b>0</b> jobs setted", parse_mode='HTML')
+        update.message.reply_text("You are <b>0</b> jobs set", parse_mode='HTML')
     
 def list_scripts(bot, update):
     message = "You have <b>{}</b> scripts configured.".format(len(scripts))
