@@ -47,6 +47,24 @@ dict_settings = {
 
 database = None
 
+profiles = ["example1", "example2", "example3"]
+var = [0]
+n = len(profiles)
+keyboard = var[:]*n
+
+def start(bot, update):
+    for x in range(len(profiles)):
+        keyboard[x] = [InlineKeyboardButton(profiles[x], callback_data=profiles.index(profiles[x]))]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please choose:', reply_markup=reply_markup)
+
+
+def button(bot, update):
+    query = update.callback_query
+    query.edit_message_text((query.data))
+    if (query.data) == 1:
+        list_scripts(bot, update)
+
 
 def help(bot, update):
     reply_keyboard = [['/now', '/users', '/set']]
@@ -54,6 +72,7 @@ def help(bot, update):
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 
 # To display server date and time
+
 
 def timenow(bot, update):
     message = '<b>Current Date and Time:</b> ' + \
@@ -518,7 +537,7 @@ def main(setting_file='settings.json'):
 
     dp = updater.dispatcher
 
-    dp.add_handler(CommandHandler("start", help))
+    dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
 
     dp.add_handler(CommandHandler("status", status_process, pass_args=True))
@@ -543,6 +562,7 @@ def main(setting_file='settings.json'):
 
     dp.add_handler(CommandHandler("time", timenow))
 
+    dp.add_handler(CallbackQueryHandler(button))
     dp.add_handler(CallbackQueryHandler(
         day_choose, pass_job_queue=True, pass_chat_data=True))
 
