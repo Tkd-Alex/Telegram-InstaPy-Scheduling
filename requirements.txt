@@ -1,7 +1,7 @@
 asn1crypto==0.24.0
 certifi==2018.11.29
 cffi==1.11.5
-cryptography==2.5
+cryptography==3.2
 future==0.17.1
 plac==1.0.0
 pycparser==2.19
